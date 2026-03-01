@@ -6,6 +6,7 @@
 <title>Apna Mart – Grocery Delivery</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--g:#0c831f;--gl:#f0faf1;--gd:#0a6b1a;--y:#f8cc1b;--r:#e53935;--bg:#f8f8f8;--w:#fff;--t:#1a1a1a;--tm:#666;--b:#e8e8e8;--sh:0 4px 24px rgba(0,0,0,.10);--rad:16px;--rs:10px;--f:'Poppins',sans-serif;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -198,6 +199,32 @@ input,select{font-family:var(--f);}
 .tgs:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#8b949e;border-radius:50%;transition:.3s;}
 .tg input:checked+.tgs{background:#238636;}
 .tg input:checked+.tgs:before{transform:translateX(20px);background:#fff;}
+
+/* ANALYTICS */
+.af{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center;}
+.af-btn{padding:7px 14px;border:1.5px solid #30363d;border-radius:20px;font-size:12px;font-weight:600;color:#8b949e;background:transparent;cursor:pointer;font-family:var(--f);transition:all .2s;}
+.af-btn.on{background:#58a6ff;border-color:#58a6ff;color:#fff;}
+.af-date{background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:7px 10px;border-radius:8px;font-size:12px;font-family:var(--f);outline:none;}
+.ach{background:#161b22;border:1px solid #30363d;border-radius:var(--rad);padding:16px;margin-bottom:16px;}
+.ach-title{font-size:13px;font-weight:700;color:#58a6ff;margin-bottom:12px;}
+.acg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+@media(min-width:600px){.acg{grid-template-columns:repeat(4,1fr);}}
+.acs{background:#0d1117;border:1px solid #30363d;border-radius:var(--rs);padding:12px;}
+.acs-v{font-size:20px;font-weight:800;font-family:'Syne',sans-serif;}
+.acs-l{font-size:11px;color:#8b949e;margin-top:3px;}
+.top-list{display:flex;flex-direction:column;gap:6px;}
+.top-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#0d1117;border-radius:8px;}
+.top-name{font-size:12px;font-weight:600;color:#e6edf3;}
+.top-val{font-size:12px;font-weight:700;color:#3fb950;}
+/* INVOICE */
+.inv-wrap{background:#fff;border-radius:var(--rad);padding:24px;max-width:580px;margin:0 auto;}
+@media print{
+  body *{visibility:hidden!important;}
+  #invoice-print,#invoice-print *{visibility:visible!important;}
+  #invoice-print{position:fixed;inset:0;background:#fff;z-index:99999;padding:24px;}
+  .no-print{display:none!important;}
+}
+
 </style>
 </head>
 <body>
@@ -399,6 +426,7 @@ input,select{font-family:var(--f);}
       </div>
       <nav class="an">
         <div class="ani on" onclick="aTab('s-db',this)">📊 Dashboard</div>
+        <div class="ani" onclick="aTab('s-an',this)">📈 Analytics</div>
         <div class="ani" onclick="aTab('s-ord',this)">📦 Orders</div>
         <div class="ani" onclick="aTab('s-prod',this)">🛒 Products</div>
         <div class="ani" onclick="aTab('s-cat',this)">🏷️ Categories</div>
@@ -417,6 +445,54 @@ input,select{font-family:var(--f);}
           <div style="background:#161b22;border:1px solid #30363d;border-radius:var(--rad);padding:16px">
             <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:#58a6ff">Recent Orders</div>
             <div id="a-recent"></div>
+          </div>
+        </div>
+
+
+        <!-- ANALYTICS -->
+        <div id="s-an" class="as">
+          <div style="font-size:16px;font-weight:700;margin-bottom:14px">📈 Analytics</div>
+          <!-- Date filters -->
+          <div class="af">
+            <button class="af-btn on" onclick="setFilter('today',this)">Today</button>
+            <button class="af-btn" onclick="setFilter('yesterday',this)">Yesterday</button>
+            <button class="af-btn" onclick="setFilter('week',this)">This Week</button>
+            <button class="af-btn" onclick="setFilter('month',this)">This Month</button>
+            <button class="af-btn" onclick="setFilter('custom',this)">Custom</button>
+          </div>
+          <div id="custom-range" style="display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center" class="af">
+            <span style="font-size:12px;color:#8b949e">From:</span>
+            <input type="date" class="af-date" id="an-from" onchange="renderAnalytics()">
+            <span style="font-size:12px;color:#8b949e">To:</span>
+            <input type="date" class="af-date" id="an-to" onchange="renderAnalytics()">
+          </div>
+          <!-- Summary cards -->
+          <div class="acg" id="an-cards"></div>
+          <!-- Revenue chart -->
+          <div class="ach">
+            <div class="ach-title">💰 Revenue Over Time</div>
+            <canvas id="rev-chart" height="200"></canvas>
+          </div>
+          <!-- Orders chart -->
+          <div class="ach">
+            <div class="ach-title">📦 Orders Over Time</div>
+            <canvas id="ord-chart" height="200"></canvas>
+          </div>
+          <!-- Two column -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div class="ach" style="margin-bottom:0">
+              <div class="ach-title">🏆 Top Products</div>
+              <div class="top-list" id="top-prods"></div>
+            </div>
+            <div class="ach" style="margin-bottom:0">
+              <div class="ach-title">🏷️ Sales by Category</div>
+              <canvas id="cat-chart" height="200"></canvas>
+            </div>
+          </div>
+          <!-- Order status breakdown -->
+          <div class="ach">
+            <div class="ach-title">📊 Order Status Breakdown</div>
+            <canvas id="status-chart" height="180"></canvas>
           </div>
         </div>
 
@@ -519,6 +595,22 @@ input,select{font-family:var(--f);}
       </div>
     </div>
   </div>
+
+  <!-- INVOICE MODAL -->
+  <div class="amo" id="mod-inv">
+    <div class="amd" style="max-width:600px;background:#fff;color:#1a1a1a" id="invoice-print">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px" class="no-print">
+        <div style="font-size:16px;font-weight:700;color:#0c831f">🧾 Invoice</div>
+        <div style="display:flex;gap:8px">
+          <button class="xb xb-g" onclick="window.print()">🖨️ Print</button>
+          <button class="xb xb-b" onclick="downloadInvoice()">⬇️ Download</button>
+          <button class="xb xb-r" onclick="document.getElementById('mod-inv').classList.remove('open')">✕ Close</button>
+        </div>
+      </div>
+      <div id="inv-content"></div>
+    </div>
+  </div>
+
 </div><!-- END ADMIN -->
 
 
@@ -730,7 +822,9 @@ async function placeOrder(){
       customer:name,phone:S.user?.phone||'',
       address:`${a.house}, ${a.street}${a.lm?', '+a.lm:''}, ${a.city} – ${a.pin}`,
       items:[...S.cart],subtotal:sub(),deliveryFee:dfee(),total:tot(),
-      payment:document.getElementById('co-pay').value
+      payment:document.getElementById('co-pay').value,
+      ordered_at: new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}),
+      ts: Date.now()
     });
     S.orders.unshift(order);
     S.cart=[];uCart();renderProds();
@@ -761,7 +855,7 @@ function renderOrds(){
       <div style="font-size:12px;color:var(--tm);margin-bottom:6px">${(o.items||[]).map(i=>i.name+'×'+i.qty).join(', ')}</div>
       <div style="display:flex;justify-content:space-between">
         <b style="font-size:14px">₹${o.total}</b>
-        <span style="font-size:11px;color:var(--tm)">${new Date(o.created_at).toLocaleDateString('en-IN')}</span>
+        <span style="font-size:11px;color:var(--tm)">${o.ordered_at||new Date(o.created_at).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}</span>
       </div>
     </div>`).join('');
 }
@@ -875,6 +969,7 @@ function aTab(id,el){
   if(id==='s-cat') renderACats();
   if(id==='s-set') loadSett();
   if(id==='s-db') refreshStats();
+  if(id==='s-an'){loadAnalyticsOrders();}
 }
 
 // ══════════════════════════════
@@ -916,6 +1011,7 @@ async function renderAOrds(filter){
           <div class="aoi">${o.address}</div>
           <div class="aoi" style="margin-top:4px">${(o.items||[]).map(i=>(i.emoji||'')+i.name+'×'+i.qty).join(' | ')}</div>
           <div class="aoi" style="color:#e6edf3;font-weight:600;margin-top:4px">₹${o.total} · ${(o.payment||'').toUpperCase()}</div>
+          <div class="aoi">🕐 ${o.ordered_at||new Date(o.created_at).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}</div>
         </div>
         <select class="ssel" onchange="updOrd(${o.id},this.value)">
           <option ${o.status==='pending'?'selected':''} value="pending">Pending</option>
@@ -924,6 +1020,7 @@ async function renderAOrds(filter){
           <option ${o.status==='delivered'?'selected':''} value="delivered">Delivered</option>
           <option ${o.status==='cancelled'?'selected':''} value="cancelled">Cancelled</option>
         </select>
+        <button class="xb xb-b" onclick="showInvoice(${o.id})">🧾 Invoice</button>
       </div>
     </div>`).join('');
 }
@@ -1121,6 +1218,283 @@ function togglePwVis(){
     ?'<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
     :'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
+
+// ══════════════════════════════════════════════════
+//  ANALYTICS
+// ══════════════════════════════════════════════════
+let anOrders = [];
+let anFilter = 'today';
+let revChart, ordChart, catChart, statusChart;
+
+async function loadAnalyticsOrders(){
+  try{ anOrders = await api('/api/orders'); } catch(e){ anOrders = S.orders; }
+  setFilter('today', document.querySelector('.af-btn'));
+}
+
+function setFilter(f, el){
+  anFilter = f;
+  document.querySelectorAll('.af-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  const cr = document.getElementById('custom-range');
+  cr.style.display = f==='custom' ? 'flex' : 'none';
+  if(f !== 'custom') renderAnalytics();
+}
+
+function getFilteredOrders(){
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  return anOrders.filter(o => {
+    const d = new Date(o.created_at || o.ts);
+    if(anFilter === 'today'){
+      return d >= today;
+    } else if(anFilter === 'yesterday'){
+      const yest = new Date(today); yest.setDate(yest.getDate()-1);
+      return d >= yest && d < today;
+    } else if(anFilter === 'week'){
+      const wk = new Date(today); wk.setDate(wk.getDate() - wk.getDay());
+      return d >= wk;
+    } else if(anFilter === 'month'){
+      return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+    } else if(anFilter === 'custom'){
+      const from = document.getElementById('an-from').value;
+      const to   = document.getElementById('an-to').value;
+      if(!from || !to) return true;
+      return d >= new Date(from) && d <= new Date(to + 'T23:59:59');
+    }
+    return true;
+  });
+}
+
+function renderAnalytics(){
+  const orders = getFilteredOrders();
+  const delivered = orders.filter(o=>o.status==='delivered');
+  const pending   = orders.filter(o=>o.status==='pending');
+  const cancelled = orders.filter(o=>o.status==='cancelled');
+  const revenue   = delivered.reduce((s,o)=>s+(+o.total||0),0);
+  const avgOrder  = delivered.length ? Math.round(revenue/delivered.length) : 0;
+
+  // Summary cards
+  document.getElementById('an-cards').innerHTML = `
+    <div class="acs"><div class="acs-v svg">₹${revenue.toLocaleString('en-IN')}</div><div class="acs-l">Revenue</div></div>
+    <div class="acs"><div class="acs-v svb">${orders.length}</div><div class="acs-l">Total Orders</div></div>
+    <div class="acs"><div class="acs-v svy">₹${avgOrder}</div><div class="acs-l">Avg Order</div></div>
+    <div class="acs"><div class="acs-v svr">${cancelled.length}</div><div class="acs-l">Cancelled</div></div>
+  `;
+
+  // Build daily data for line charts
+  const dayMap = {};
+  orders.forEach(o=>{
+    const d = new Date(o.created_at || o.ts);
+    const key = d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
+    if(!dayMap[key]) dayMap[key]={rev:0,cnt:0};
+    if(o.status!=='cancelled') dayMap[key].rev += (+o.total||0);
+    dayMap[key].cnt++;
+  });
+  const labels = Object.keys(dayMap);
+  const revData = labels.map(k=>dayMap[k].rev);
+  const cntData = labels.map(k=>dayMap[k].cnt);
+
+  const chartDefaults = {
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{color:'#8b949e',font:{size:10}},grid:{color:'#21262d'}},
+      y:{ticks:{color:'#8b949e',font:{size:10}},grid:{color:'#21262d'},beginAtZero:true}
+    }
+  };
+
+  // Revenue chart
+  if(revChart) revChart.destroy();
+  revChart = new Chart(document.getElementById('rev-chart'), {
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label:'Revenue ₹',data:revData,
+        borderColor:'#3fb950',backgroundColor:'rgba(63,185,80,.15)',
+        tension:.4,fill:true,pointBackgroundColor:'#3fb950',pointRadius:4
+      }]
+    },
+    options:{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip:{callbacks:{label:c=>'₹'+c.parsed.y.toLocaleString('en-IN')}}}}
+  });
+
+  // Orders chart
+  if(ordChart) ordChart.destroy();
+  ordChart = new Chart(document.getElementById('ord-chart'), {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:'Orders',data:cntData,
+        backgroundColor:'rgba(88,166,255,.7)',borderColor:'#58a6ff',borderWidth:1,borderRadius:4
+      }]
+    },
+    options:chartDefaults
+  });
+
+  // Category sales
+  const catMap = {};
+  orders.forEach(o=>{
+    (o.items||[]).forEach(i=>{
+      const cat = S.products.find(p=>p.id==i.id)?.cat || i.cat || 'Other';
+      catMap[cat] = (catMap[cat]||0) + (i.price*i.qty);
+    });
+  });
+  const catLabels = Object.keys(catMap);
+  const catVals   = catLabels.map(k=>catMap[k]);
+  const palette   = ['#58a6ff','#3fb950','#f8cc1b','#f85149','#bc8cff','#ffa657','#39d353','#da3633'];
+
+  if(catChart) catChart.destroy();
+  catChart = new Chart(document.getElementById('cat-chart'), {
+    type:'doughnut',
+    data:{
+      labels:catLabels,
+      datasets:[{data:catVals,backgroundColor:palette,borderWidth:2,borderColor:'#161b22'}]
+    },
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:10},padding:8}}}}
+  });
+
+  // Top products
+  const prodMap = {};
+  orders.forEach(o=>{
+    (o.items||[]).forEach(i=>{
+      if(!prodMap[i.name]) prodMap[i.name]={qty:0,rev:0};
+      prodMap[i.name].qty += i.qty;
+      prodMap[i.name].rev += i.price*i.qty;
+    });
+  });
+  const topProds = Object.entries(prodMap).sort((a,b)=>b[1].rev-a[1].rev).slice(0,6);
+  document.getElementById('top-prods').innerHTML = topProds.length
+    ? topProds.map(([name,d])=>`
+        <div class="top-row">
+          <span class="top-name">${name}</span>
+          <span class="top-val">₹${d.rev} (${d.qty}x)</span>
+        </div>`).join('')
+    : '<div style="color:#8b949e;font-size:12px;padding:10px">No data</div>';
+
+  // Status breakdown
+  const statusCounts = {
+    pending: orders.filter(o=>o.status==='pending').length,
+    confirmed: orders.filter(o=>o.status==='confirmed').length,
+    out_for_delivery: orders.filter(o=>o.status==='out_for_delivery').length,
+    delivered: orders.filter(o=>o.status==='delivered').length,
+    cancelled: orders.filter(o=>o.status==='cancelled').length,
+  };
+  if(statusChart) statusChart.destroy();
+  statusChart = new Chart(document.getElementById('status-chart'), {
+    type:'bar',
+    data:{
+      labels:['Pending','Confirmed','Out for Delivery','Delivered','Cancelled'],
+      datasets:[{
+        data:Object.values(statusCounts),
+        backgroundColor:['#d29922','#58a6ff','#bc8cff','#3fb950','#f85149'],
+        borderRadius:6
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#8b949e',font:{size:10}},grid:{color:'#21262d'},beginAtZero:true},
+        y:{ticks:{color:'#8b949e',font:{size:10}},grid:{display:false}}
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  INVOICE
+// ══════════════════════════════════════════════════
+function showInvoice(id){
+  const o = S.orders.find(x=>x.id==id);
+  if(!o){ toast('Order not found','e'); return; }
+  const dt = o.ordered_at || new Date(o.created_at).toLocaleString('en-IN',{dateStyle:'long',timeStyle:'short'});
+  const items = (o.items||[]).map(i=>`
+    <tr style="border-bottom:1px solid #e8e8e8">
+      <td style="padding:8px 0;font-size:13px">${i.emoji||''} ${i.name}</td>
+      <td style="padding:8px 0;font-size:13px;text-align:center">${i.qty}</td>
+      <td style="padding:8px 0;font-size:13px;text-align:right">₹${i.price}</td>
+      <td style="padding:8px 0;font-size:13px;font-weight:600;text-align:right">₹${i.price*i.qty}</td>
+    </tr>`).join('');
+
+  const delivFree = S.settings.freeOver>0 && o.subtotal>=S.settings.freeOver;
+
+  document.getElementById('inv-content').innerHTML = `
+    <div class="inv-wrap">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid #0c831f">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#0c831f">Apna<span style="color:#f8cc1b">Mart</span></div>
+          <div style="font-size:11px;color:#666;margin-top:2px">${S.settings.storeName||'Apna Mart'} · ${S.settings.phone||''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:18px;font-weight:800;color:#1a1a1a">INVOICE</div>
+          <div style="font-size:12px;color:#666;margin-top:2px">#${String(o.id).slice(-6).toUpperCase()}</div>
+          <div style="font-size:11px;color:#666">${dt}</div>
+        </div>
+      </div>
+      <!-- Customer -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Bill To</div>
+          <div style="font-size:14px;font-weight:700">${o.customer}</div>
+          <div style="font-size:12px;color:#666;margin-top:2px">${o.phone}</div>
+          <div style="font-size:12px;color:#666;margin-top:2px;line-height:1.5">${o.address}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Payment</div>
+          <div style="font-size:13px;font-weight:600;text-transform:uppercase">${o.payment||'COD'}</div>
+          <div style="margin-top:8px">
+            <span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:${o.status==='delivered'?'#e8f5e9':'#fff9db'};color:${o.status==='delivered'?'#2e7d32':'#b8860b'}">${o.status?.toUpperCase()||'PENDING'}</span>
+          </div>
+        </div>
+      </div>
+      <!-- Items table -->
+      <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+        <thead>
+          <tr style="background:#f8f8f8">
+            <th style="padding:10px 0;font-size:12px;font-weight:700;color:#666;text-align:left;text-transform:uppercase">Item</th>
+            <th style="padding:10px 0;font-size:12px;font-weight:700;color:#666;text-align:center;text-transform:uppercase">Qty</th>
+            <th style="padding:10px 0;font-size:12px;font-weight:700;color:#666;text-align:right;text-transform:uppercase">Rate</th>
+            <th style="padding:10px 0;font-size:12px;font-weight:700;color:#666;text-align:right;text-transform:uppercase">Amount</th>
+          </tr>
+        </thead>
+        <tbody>${items}</tbody>
+      </table>
+      <!-- Totals -->
+      <div style="max-width:220px;margin-left:auto">
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px">
+          <span style="color:#666">Subtotal</span><span>₹${o.subtotal}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px">
+          <span style="color:#666">Delivery</span>
+          <span>${delivFree?'<span style="color:#0c831f;font-size:11px">FREE</span>':'₹'+(o.delivery_fee||o.deliveryFee||0)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:16px;font-weight:800;border-top:2px solid #0c831f;margin-top:4px">
+          <span>Total</span><span style="color:#0c831f">₹${o.total}</span>
+        </div>
+      </div>
+      <!-- Footer -->
+      <div style="margin-top:24px;padding-top:14px;border-top:1px solid #e8e8e8;text-align:center;font-size:11px;color:#999">
+        Thank you for shopping with ${S.settings.storeName||'Apna Mart'}! 🛒<br>
+        For queries call ${S.settings.phone||''}
+      </div>
+    </div>
+  `;
+  document.getElementById('mod-inv').classList.add('open');
+}
+
+function downloadInvoice(){
+  const o = S.orders.find(x=> document.getElementById('inv-content').innerHTML.includes(String(x.id).slice(-6).toUpperCase()));
+  const content = document.getElementById('inv-content').innerHTML;
+  const blob = new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invoice</title><style>body{font-family:'Poppins',sans-serif;padding:20px;max-width:600px;margin:0 auto}table{width:100%;border-collapse:collapse}</style></head><body>${content}</body></html>`], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'invoice.html';
+  a.click();
+}
+
 </script>
 </body>
 </html>
