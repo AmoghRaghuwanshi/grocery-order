@@ -304,7 +304,7 @@ input,select{font-family:var(--f);}
           <input class="inp" type="tel" id="ph" placeholder="9876543210" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
         </div>
         <button class="btn btn-g w100" id="send-btn" onclick="sendOTP()">Send OTP via SMS</button>
-        <div style="font-size:11px;color:var(--tm);text-align:center;margin-top:8px">⚠️ OTP requires Firebase Auth setup. For demo, use any 6 digits.</div>
+
       </div>
       <div id="os2" class="hidden">
         <div style="font-size:13px;color:var(--tm);margin-bottom:14px">OTP sent to <b id="otp-ph"></b></div>
@@ -377,10 +377,17 @@ input,select{font-family:var(--f);}
           <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#58a6ff">Apna<span style="color:var(--y)">Mart</span></div>
           <div style="font-size:13px;color:#8b949e;margin-top:4px">Admin Panel</div>
         </div>
-        <div class="afg"><label class="al2">Username</label><input class="ai" id="a-user" placeholder="admin"></div>
-        <div class="afg" style="margin-bottom:20px"><label class="al2">Password</label><input class="ai" type="password" id="a-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')aLogin()"></div>
+        <div class="afg"><label class="al2">Username</label><input class="ai" id="a-user" placeholder="Enter username"></div>
+        <div class="afg" style="margin-bottom:20px">
+          <label class="al2">Password</label>
+          <div style="position:relative">
+            <input class="ai" type="password" id="a-pass" placeholder="Enter password" onkeydown="if(event.key==='Enter')aLogin()" style="padding-right:44px">
+            <button onclick="togglePwVis()" type="button" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#8b949e;display:flex;align-items:center;padding:0">
+              <svg id="eye-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
         <button class="btn btn-g w100" onclick="aLogin()">Login</button>
-        <div style="font-size:11px;color:#8b949e;text-align:center;margin-top:10px">Default: admin / admin123</div>
       </div>
     </div>
 
@@ -526,7 +533,6 @@ const S = {
   user: JSON.parse(localStorage.getItem('am_user')||'null'),
   addr: JSON.parse(localStorage.getItem('am_addr')||'null'),
   curCat:'all', editProd:null, editCat:null, uploadImg:null,
-  demoOTP: null  // used for demo OTP (no Firebase)
 };
 
 // ══════════════════════════════
@@ -762,39 +768,62 @@ function renderOrds(){
 function sl(s){return{pending:'⏳ Pending',confirmed:'✓ Confirmed',out_for_delivery:'🛵 Out for Delivery',delivered:'✅ Delivered',cancelled:'✕ Cancelled'}[s]||s;}
 
 // ══════════════════════════════
-//  OTP  (demo — swap for Firebase if needed)
+//  OTP via 2Factor.in (free Indian SMS)
+//  Setup: get free API key from 2factor.in
+//  Then create a Netlify function /api/send-otp and /api/verify-otp (see README)
+//  OR use the built-in server-side OTP below (secure, no external service)
 // ══════════════════════════════
 function openOTP(){
-  if(S.user){toast('Verified as '+S.user.phone,'i');return;}
+  if(S.user){toast('Already verified as '+S.user.phone,'i');return;}
   document.getElementById('os1').classList.remove('hidden');
   document.getElementById('os2').classList.add('hidden');
   document.querySelectorAll('.oi').forEach(i=>i.value='');
   om('m-otp');
 }
-function sendOTP(){
+async function sendOTP(){
   const ph=document.getElementById('ph').value.trim();
-  if(ph.length!==10){toast('Enter 10-digit number','e');return;}
-  S.demoOTP=Math.floor(100000+Math.random()*900000).toString();
-  document.getElementById('otp-ph').textContent='+91'+ph;
-  document.getElementById('os1').classList.add('hidden');
-  document.getElementById('os2').classList.remove('hidden');
-  document.querySelectorAll('.oi')[0].focus();
-  toast('Demo OTP: '+S.demoOTP,'i');  // ← replace with Firebase for real SMS
+  if(ph.length!==10){toast('Enter valid 10-digit number','e');return;}
+  const btn=document.getElementById('send-btn');
+  btn.textContent='Sending...'; btn.disabled=true;
+  try{
+    // Calls your Netlify function which uses 2Factor.in API
+    const res=await api('/api/send-otp','POST',{phone:'+91'+ph});
+    if(res.ok){
+      document.getElementById('otp-ph').textContent='+91'+ph;
+      document.getElementById('os1').classList.add('hidden');
+      document.getElementById('os2').classList.remove('hidden');
+      document.querySelectorAll('.oi')[0].focus();
+      if(res.dev_otp){
+        toast('Test OTP: '+res.dev_otp+' (Add SMS API key for real SMS)','i');
+      } else {
+        toast('OTP sent to +91'+ph,'i');
+      }
+    } else {
+      toast(res.error||'Failed to send OTP','e');
+    }
+  }catch(e){
+    toast('SMS error: '+e.message,'e');
+  }
+  btn.textContent='Send OTP via SMS'; btn.disabled=false;
 }
 function on(el,i){el.value=el.value.replace(/\D/g,'');if(el.value&&i<5)document.querySelectorAll('.oi')[i+1].focus();}
-function verOTP(){
+async function verOTP(){
   const code=Array.from(document.querySelectorAll('.oi')).map(i=>i.value).join('');
   if(code.length<6){toast('Enter all 6 digits','e');return;}
-  // Demo: any 6 digits work — swap this check for Firebase confirm() for real SMS
-  if(code===S.demoOTP || code.length===6){
-    const ph='+91'+document.getElementById('ph').value;
-    S.user={phone:ph,name:'User '+ph.slice(-4)};
-    localStorage.setItem('am_user',JSON.stringify(S.user));
-    applyUser();cm('m-otp');toast('✅ Verified!');loadOrders();
-  } else {
-    toast('Wrong OTP','e');
-    document.querySelectorAll('.oi').forEach(i=>i.value='');
-    document.querySelectorAll('.oi')[0].focus();
+  const ph='+91'+document.getElementById('ph').value;
+  try{
+    const res=await api('/api/verify-otp','POST',{phone:ph,otp:code});
+    if(res.ok){
+      S.user={phone:ph,name:'User '+ph.slice(-4)};
+      localStorage.setItem('am_user',JSON.stringify(S.user));
+      applyUser(); cm('m-otp'); toast('✅ Verified!'); loadOrders();
+    } else {
+      toast('Wrong OTP. Try again.','e');
+      document.querySelectorAll('.oi').forEach(i=>i.value='');
+      document.querySelectorAll('.oi')[0].focus();
+    }
+  }catch(e){
+    toast('Verification error','e');
   }
 }
 
@@ -1093,6 +1122,19 @@ async function changePW(){
   if(pw.length<6){toast('Min 6 chars','e');return;}
   S.settings.adminPass=pw;
   try{await api('/api/settings','POST',S.settings);document.getElementById('s-pw').value='';toast('Password changed!');}catch(e){toast('Error','e');}
+}
+
+// ══════════════════════════════
+//  SHOW/HIDE PASSWORD
+// ══════════════════════════════
+function togglePwVis(){
+  const inp=document.getElementById('a-pass');
+  const icon=document.getElementById('eye-icon');
+  const isHidden=inp.type==='password';
+  inp.type=isHidden?'text':'password';
+  icon.innerHTML=isHidden
+    ?'<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    :'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 </script>
 </body>
