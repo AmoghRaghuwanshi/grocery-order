@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Apna Mart – Grocery Delivery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--g:#0c831f;--gl:#f0faf1;--gd:#0a6b1a;--y:#f8cc1b;--r:#e53935;--bg:#f8f8f8;--w:#fff;--t:#1a1a1a;--tm:#666;--b:#e8e8e8;--sh:0 4px 24px rgba(0,0,0,.10);--rad:16px;--rs:10px;--f:'Poppins',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--f);background:var(--bg);color:var(--t);overflow-x:hidden;min-height:100vh;}
+.hidden{display:none!important;}.w100{width:100%;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;border:none;border-radius:var(--rs);font-family:var(--f);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;outline:none;}
+.btn:active{transform:scale(.96);}
+.btn-g{background:var(--g);color:#fff;box-shadow:0 4px 14px rgba(12,131,31,.35);}
+.btn-g:hover{background:var(--gd);}
+.btn-o{background:transparent;border:2px solid var(--g);color:var(--g);}
+.btn-o:hover{background:var(--g);color:#fff;}
+.btn-sm{padding:8px 14px;font-size:13px;}
+input,select{font-family:var(--f);}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--b);border-radius:var(--rs);font-size:14px;outline:none;transition:border .2s;background:#fff;}
+.inp:focus{border-color:var(--g);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes sd{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+.spin{width:36px;height:36px;border:3px solid #e8e8e8;border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto;}
+
+/* LOADING */
+#ls{position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+#ls .sp{width:44px;height:44px;border:4px solid #e8e8e8;border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite;}
+#ls p{font-size:14px;font-weight:600;color:var(--g);}
+
+/* HEADER */
+.hdr{background:var(--g);position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.15);}
+.hdr-in{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:-1px;}
+.logo span{color:var(--y);}
+.loc{background:rgba(255,255,255,.15);padding:8px 16px;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,.15);cursor:pointer;}
+.loc-t{flex:1;font-size:12px;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.loc-b{background:var(--y);color:#000;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:none;cursor:pointer;}
+.cbtn{position:relative;background:rgba(255,255,255,.2);border:none;color:#fff;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.cbadge{position:absolute;top:-4px;right:-4px;background:var(--y);color:#000;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--g) 0%,#2dc545 100%);padding:24px 16px 40px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;right:-40px;top:-20px;width:180px;height:180px;background:rgba(255,255,255,.06);border-radius:50%;}
+.ht{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;line-height:1.25;margin-bottom:6px;}
+.ht span{color:var(--y);}
+.hs{font-size:13px;color:rgba(255,255,255,.85);margin-bottom:18px;}
+.sb{background:#fff;border-radius:var(--rs);display:flex;align-items:center;padding:4px 4px 4px 12px;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+.sb input{flex:1;border:none;outline:none;font-size:14px;font-family:var(--f);}
+.sb button{background:var(--g);color:#fff;border:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;}
+
+/* CATS & PRODUCTS */
+.sec{padding:16px;}.st{font-size:17px;font-weight:700;margin-bottom:12px;}
+.cs{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.cs::-webkit-scrollbar{display:none;}
+.chip{flex-shrink:0;background:#fff;border:1.5px solid var(--b);border-radius:20px;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.chip.on,.chip:hover{background:var(--g);color:#fff;border-color:var(--g);}
+.pg{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media(min-width:600px){.pg{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:900px){.pg{grid-template-columns:repeat(4,1fr);}}
+.pc{background:#fff;border-radius:var(--rad);overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);position:relative;transition:transform .2s,box-shadow .2s;}
+.pc:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.12);}
+.pi{width:100%;aspect-ratio:1;object-fit:cover;}
+.pip{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#f0faf1,#e0f5e2);display:flex;align-items:center;justify-content:center;font-size:48px;}
+.pinfo{padding:10px;}.pn{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:3px;}
+.pw{font-size:11px;color:var(--tm);margin-bottom:7px;}
+.pft{display:flex;align-items:center;justify-content:space-between;}
+.pp{font-size:15px;font-weight:700;color:var(--g);}
+.pp .sk{font-size:11px;font-weight:400;color:var(--tm);text-decoration:line-through;margin-left:3px;}
+.ab-btn{background:var(--g);color:#fff;border:none;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+.qc{display:flex;align-items:center;gap:6px;}
+.qb{background:var(--g);color:#fff;border:none;width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:700;}
+.qn{font-size:13px;font-weight:700;min-width:16px;text-align:center;}
+.oos{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;}
+.disc{position:absolute;top:8px;right:8px;background:var(--r);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--b);display:flex;z-index:200;box-shadow:0 -4px 20px rgba(0,0,0,.08);}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 6px;cursor:pointer;color:var(--tm);transition:color .2s;}
+.ni.on{color:var(--g);}.ni svg{margin-bottom:3px;}
+.nl{font-size:10px;font-weight:600;}
+
+/* FLOAT CART */
+.cf{position:fixed;bottom:70px;left:16px;right:16px;background:var(--g);color:#fff;border-radius:var(--rad);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 30px rgba(12,131,31,.4);z-index:150;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;}
+.cf.hide{transform:translateY(120px);opacity:0;pointer-events:none;}
+.cfl{display:flex;align-items:center;gap:8px;}
+.cfc{background:rgba(255,255,255,.25);width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.cft{font-size:13px;font-weight:600;}.cfp{font-size:14px;font-weight:700;}
+
+/* MODALS */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s;}
+.mo.open{opacity:1;pointer-events:all;}
+.ms{background:#fff;border-radius:var(--rad) var(--rad) 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:20px 16px 40px;transform:translateY(100%);transition:transform .35s cubic-bezier(.22,1,.36,1);}
+.mo.open .ms{transform:translateY(0);}
+.mh{width:40px;height:4px;background:var(--b);border-radius:2px;margin:0 auto 16px;}
+.mt{font-size:18px;font-weight:700;margin-bottom:16px;}
+
+/* OTP */
+.og{display:flex;gap:10px;justify-content:center;margin:16px 0;}
+.oi{width:46px;height:50px;border:2px solid var(--b);border-radius:10px;font-size:20px;font-weight:700;text-align:center;font-family:var(--f);outline:none;transition:border .2s;}
+.oi:focus{border-color:var(--g);}
+
+/* CART ITEMS */
+.ci{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--b);}
+.cii{width:52px;height:52px;border-radius:10px;background:#f0f5f0;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;overflow:hidden;}
+.csum{background:var(--gl);border-radius:var(--rs);padding:14px;margin-top:16px;}
+.cr{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;}
+.cr.tot{font-weight:700;font-size:15px;border-top:1px solid #cce8cd;padding-top:10px;margin-top:6px;}
+
+/* CONTACT FAB */
+.fab{position:fixed;bottom:80px;right:16px;background:var(--g);color:#fff;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(12,131,31,.4);z-index:140;transition:transform .2s;}
+.fab:hover{transform:scale(1.1);}
+.fpop{position:fixed;bottom:142px;right:16px;background:#fff;border-radius:var(--rad);padding:16px;box-shadow:var(--sh);z-index:140;width:220px;transform:scale(.8) translateY(20px);opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);transform-origin:bottom right;}
+.fpop.show{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+.wa{display:flex;align-items:center;gap:8px;background:#25D366;color:#fff;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;text-decoration:none;margin-top:10px;justify-content:center;}
+
+/* ORDER CARDS */
+.oc{background:#fff;border-radius:var(--rad);padding:14px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.06);}
+.os{font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;}
+.s-pending{background:#fff9db;color:#b8860b;}.s-confirmed{background:var(--gl);color:var(--g);}
+.s-out_for_delivery{background:#e3f2fd;color:#1565c0;}.s-delivered{background:#e8f5e9;color:#2e7d32;}
+.s-cancelled{background:#ffeaea;color:var(--r);}
+
+/* TOAST */
+.tc{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;width:90%;max-width:340px;pointer-events:none;}
+.toast{background:#1f2937;color:#fff;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;animation:sd .3s ease forwards;}
+.ts{border-left:4px solid var(--g);}.te{border-left:4px solid var(--r);}.ti{border-left:4px solid #3b82f6;}
+
+/* ADMIN TAB */
+.atab{position:fixed;top:50%;right:0;background:var(--y);color:#000;font-size:11px;font-weight:700;padding:6px 10px;border:none;cursor:pointer;border-radius:6px 0 0 6px;z-index:500;writing-mode:vertical-rl;letter-spacing:1px;}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;}
+.empty svg{opacity:.3;margin-bottom:12px;}
+.empty h3{font-size:15px;font-weight:600;color:var(--tm);}
+
+/* ══ ADMIN ══ */
+#admin-page{display:none;}
+.ab{background:#0d1117;min-height:100vh;color:#e6edf3;}
+.ah{background:#161b22;border-bottom:1px solid #30363d;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.al{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#58a6ff;}
+.al span{color:var(--y);}
+.an{background:#161b22;border-bottom:1px solid #30363d;display:flex;overflow-x:auto;scrollbar-width:none;}
+.an::-webkit-scrollbar{display:none;}
+.ani{padding:12px 18px;font-size:13px;font-weight:600;color:#8b949e;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;}
+.ani.on{color:#58a6ff;border-bottom-color:#58a6ff;}
+.ac{padding:16px;max-width:1200px;margin:0 auto;}
+.as{display:none;}.as.on{display:block;animation:fadeUp .3s ease forwards;}
+.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;}
+@media(min-width:600px){.sg{grid-template-columns:repeat(4,1fr);}}
+.sk2{background:#161b22;border:1px solid #30363d;border-radius:var(--rad);padding:16px;}
+.sv{font-size:24px;font-weight:800;font-family:'Syne',sans-serif;}
+.sl{font-size:12px;color:#8b949e;margin-top:4px;}
+.svg{color:#3fb950;}.svb{color:#58a6ff;}.svy{color:#d29922;}.svr{color:#f85149;}
+.apg{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media(min-width:600px){.apg{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:900px){.apg{grid-template-columns:repeat(4,1fr);}}
+.apc{background:#161b22;border:1px solid #30363d;border-radius:var(--rad);overflow:hidden;transition:border .2s;}
+.apc:hover{border-color:#58a6ff;}
+.api{width:100%;aspect-ratio:1;background:#0d1117;display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden;}
+.api img{width:100%;aspect-ratio:1;object-fit:cover;}
+.ain{padding:10px;}
+.aact{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.xb{padding:6px 10px;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--f);}
+.xb-b{background:#1f6feb;color:#fff;}.xb-r{background:#da3633;color:#fff;}.xb-g{background:#238636;color:#fff;}.xb-o{background:#b45309;color:#fff;}
+.xb-lg{padding:10px 16px;font-size:13px;}
+.aor{background:#161b22;border:1px solid #30363d;border-radius:var(--rs);padding:14px;margin-bottom:10px;}
+.aoid{font-size:13px;font-weight:700;color:#58a6ff;}
+.aoi{font-size:12px;color:#8b949e;margin-top:3px;}
+.ssel{background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:6px 10px;border-radius:6px;font-size:12px;font-family:var(--f);outline:none;cursor:pointer;}
+.sc{background:#161b22;border:1px solid #30363d;border-radius:var(--rad);padding:16px;margin-bottom:16px;}
+.sct{font-size:14px;font-weight:700;margin-bottom:14px;color:#58a6ff;}
+.ai{width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:11px 14px;border-radius:8px;font-family:var(--f);font-size:13px;outline:none;transition:border .2s;}
+.ai:focus{border-color:#58a6ff;}
+.al2{font-size:12px;color:#8b949e;margin-bottom:5px;display:block;}
+.afg{margin-bottom:12px;}.afr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+/* category list */
+.cr2{display:flex;align-items:center;justify-content:space-between;background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:12px 14px;margin-bottom:8px;transition:border .2s;}
+.cr2:hover{border-color:#388bfd;}
+.cn{display:flex;align-items:center;gap:10px;}
+.ce{font-size:22px;}.ct{font-size:14px;font-weight:600;color:#e6edf3;}
+.cc{font-size:11px;color:#8b949e;background:#161b22;padding:2px 8px;border-radius:10px;margin-left:4px;}
+/* admin modal */
+.amo{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .3s;}
+.amo.open{opacity:1;pointer-events:all;}
+.amd{background:#161b22;border:1px solid #30363d;border-radius:var(--rad);padding:20px;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;transform:scale(.9);transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+.amo.open .amd{transform:scale(1);}
+.amt{font-size:16px;font-weight:700;margin-bottom:16px;color:#58a6ff;}
+.uz{border:2px dashed #30363d;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border .2s;margin-bottom:12px;}
+.uz:hover{border-color:#58a6ff;}.uz input{display:none;}
+.upr{width:80px;height:80px;border-radius:10px;object-fit:cover;margin:0 auto 8px;display:block;}
+.tg{position:relative;display:inline-block;width:44px;height:24px;}
+.tg input{opacity:0;width:0;height:0;}
+.tgs{position:absolute;inset:0;background:#30363d;border-radius:12px;cursor:pointer;transition:.3s;}
+.tgs:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#8b949e;border-radius:50%;transition:.3s;}
+.tg input:checked+.tgs{background:#238636;}
+.tg input:checked+.tgs:before{transform:translateX(20px);background:#fff;}
+</style>
+</head>
+<body>
+
+<!-- Loading screen (shows while page + first API call runs) -->
+<div id="ls"><div class="sp"></div><p>Apna Mart</p></div>
+
+<div class="tc" id="tc"></div>
+
+<!-- ══════ CUSTOMER ══════ -->
+<div id="cpage" style="display:none">
+  <button class="atab" onclick="showAdmin()">⚙ ADMIN</button>
+
+  <header class="hdr">
+    <div class="hdr-in">
+      <div class="logo">Apna<span>Mart</span></div>
+      <button class="cbtn" onclick="openCart()">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="cbadge" id="cbadge">0</span>
+      </button>
+    </div>
+    <div class="loc" onclick="openAddr()">
+      <svg width="13" height="13" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span class="loc-t" id="loc-t">📍 Add your delivery address</span>
+      <button class="loc-b">Change</button>
+    </div>
+  </header>
+
+  <!-- HOME -->
+  <div id="p-home" style="display:block">
+    <div class="hero">
+      <div class="ht">Apna Mart —<br><span>Ghar tak delivery! 🥦</span></div>
+      <div class="hs">Fresh. Fast. Right to your door.</div>
+      <div class="sb">
+        <svg width="14" height="14" fill="none" stroke="#999" stroke-width="2" viewBox="0 0 24 24" style="margin-right:6px;flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="sinp" placeholder="Search products..." oninput="renderProds()">
+        <button>Search</button>
+      </div>
+    </div>
+    <div class="sec"><div class="st">🏷️ Categories</div><div class="cs" id="cscroll"></div></div>
+    <div class="sec" style="padding-top:0">
+      <div class="st">✨ Products</div>
+      <div class="pg" id="pgrid"><div style="grid-column:span 2;padding:40px 0;text-align:center"><div class="spin"></div></div></div>
+    </div>
+    <div style="height:130px"></div>
+  </div>
+
+  <!-- ORDERS -->
+  <div id="p-orders" style="display:none">
+    <div style="padding:20px 16px 8px;font-size:18px;font-weight:700">📦 My Orders</div>
+    <div class="sec" style="padding-top:8px"><div id="olist"></div></div>
+    <div style="height:80px"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="p-profile" style="display:none">
+    <div style="padding:24px 16px 8px;font-size:18px;font-weight:700">👤 Profile</div>
+    <div class="sec" style="padding-top:8px">
+      <div style="background:#fff;border-radius:var(--rad);box-shadow:var(--sh);padding:20px;text-align:center;margin-bottom:16px">
+        <div style="width:72px;height:72px;background:var(--gl);border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:32px">👤</div>
+        <div id="prf-name" style="font-weight:700;font-size:16px">Guest User</div>
+        <div id="prf-phone" style="font-size:13px;color:var(--tm);margin-top:4px">Verify your number to order</div>
+      </div>
+      <div style="background:#fff;border-radius:var(--rad);box-shadow:var(--sh);padding:16px;display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-g w100" id="vbtn" onclick="openOTP()">📱 Verify Mobile Number</button>
+        <button class="btn btn-o w100" onclick="goPage('orders')">📦 My Orders</button>
+      </div>
+    </div>
+    <div style="height:80px"></div>
+  </div>
+
+  <nav class="bnav">
+    <div class="ni on" id="ni-home" onclick="goPage('home')"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nl">Home</span></div>
+    <div class="ni" id="ni-orders" onclick="goPage('orders')"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 10h8M8 14h5"/></svg><span class="nl">Orders</span></div>
+    <div class="ni" id="ni-profile" onclick="goPage('profile')"><svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="nl">Profile</span></div>
+  </nav>
+
+  <div class="cf hide" id="cfloat" onclick="openCart()">
+    <div class="cfl"><div class="cfc" id="cfc">0</div><div class="cft" id="cft">View Cart</div></div>
+    <div class="cfp" id="cfp">₹0</div>
+  </div>
+
+  <div class="fab" onclick="toggleFab()">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 0117.07 2a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L18.09 9.91a16 16 0 006.29 6.29l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+  </div>
+  <div class="fpop" id="fpop">
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px">📞 Contact Store</div>
+    <div id="fpop-num" style="font-size:18px;font-weight:800;color:var(--g)">+91 98765 43210</div>
+    <a id="wa-link" href="#" target="_blank" class="wa">
+      <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm.029 18.88a9.896 9.896 0 01-4.726-1.202l-3.31.869.884-3.232A9.854 9.854 0 012.1 11.971C2.1 6.533 6.57 2.1 12.029 2.1c5.46 0 9.9 4.433 9.9 9.87 0 5.438-4.44 9.91-9.9 9.91z"/></svg>
+      WhatsApp
+    </a>
+  </div>
+
+  <!-- OTP MODAL -->
+  <div class="mo" id="m-otp">
+    <div class="ms">
+      <div class="mh"></div>
+      <div class="mt">📱 Verify Mobile Number</div>
+      <div id="os1">
+        <label>10-digit mobile number</label>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <input class="inp" value="+91" style="width:62px;text-align:center;flex-shrink:0" readonly>
+          <input class="inp" type="tel" id="ph" placeholder="9876543210" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+        </div>
+        <button class="btn btn-g w100" id="send-btn" onclick="sendOTP()">Send OTP via SMS</button>
+        <div style="font-size:11px;color:var(--tm);text-align:center;margin-top:8px">⚠️ OTP requires Firebase Auth setup. For demo, use any 6 digits.</div>
+      </div>
+      <div id="os2" class="hidden">
+        <div style="font-size:13px;color:var(--tm);margin-bottom:14px">OTP sent to <b id="otp-ph"></b></div>
+        <div class="og">
+          <input class="oi" maxlength="1" type="tel" oninput="on(this,0)">
+          <input class="oi" maxlength="1" type="tel" oninput="on(this,1)">
+          <input class="oi" maxlength="1" type="tel" oninput="on(this,2)">
+          <input class="oi" maxlength="1" type="tel" oninput="on(this,3)">
+          <input class="oi" maxlength="1" type="tel" oninput="on(this,4)">
+          <input class="oi" maxlength="1" type="tel" oninput="on(this,5)">
+        </div>
+        <button class="btn btn-g w100" onclick="verOTP()">Verify & Continue</button>
+        <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--tm)">Didn't get it? <a href="#" onclick="sendOTP();return false" style="color:var(--g);font-weight:600">Resend</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADDRESS MODAL -->
+  <div class="mo" id="m-addr">
+    <div class="ms">
+      <div class="mh"></div>
+      <div class="mt">📍 Delivery Address</div>
+      <label>House / Flat No. *</label><input class="inp" id="a-house" placeholder="Flat 301, Green Towers" style="margin-bottom:10px">
+      <label>Street / Colony *</label><input class="inp" id="a-street" placeholder="MG Road, Vijay Nagar" style="margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><label>City *</label><input class="inp" id="a-city" placeholder="Indore"></div>
+        <div><label>Pincode *</label><input class="inp" id="a-pin" placeholder="452001" maxlength="6" type="tel" oninput="this.value=this.value.replace(/\D/g,'')"></div>
+      </div>
+      <label>Landmark</label><input class="inp" id="a-lm" placeholder="Near post office..." style="margin-bottom:16px">
+      <button class="btn btn-g w100" onclick="saveAddr()">✓ Save Address</button>
+    </div>
+  </div>
+
+  <!-- CART MODAL -->
+  <div class="mo" id="m-cart">
+    <div class="ms">
+      <div class="mh"></div><div class="mt">🛒 Your Cart</div>
+      <div id="citems"></div><div id="csum2"></div>
+      <button class="btn btn-g w100" style="margin-top:16px" onclick="goCheckout()">Proceed to Checkout →</button>
+    </div>
+  </div>
+
+  <!-- CHECKOUT MODAL -->
+  <div class="mo" id="m-co">
+    <div class="ms">
+      <div class="mh"></div><div class="mt">✅ Confirm Order</div>
+      <label>Your Name *</label><input class="inp" id="co-n" placeholder="Full name" style="margin-bottom:10px">
+      <label>Delivery Address</label>
+      <div id="co-addr" style="background:var(--gl);border-radius:var(--rs);padding:12px;margin-bottom:10px;font-size:13px;color:var(--g);font-weight:500;line-height:1.5">—</div>
+      <label>Payment</label>
+      <select class="inp" id="co-pay" style="margin-bottom:16px">
+        <option value="cod">💵 Cash on Delivery</option>
+        <option value="upi">📱 UPI</option>
+        <option value="card">💳 Card</option>
+      </select>
+      <div class="csum" id="co-sum"></div>
+      <button class="btn btn-g w100" id="place-btn" style="margin-top:16px" onclick="placeOrder()">🎉 Place Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ ADMIN ══════ -->
+<div id="admin-page">
+  <button onclick="showCustomer()" style="position:fixed;top:0;left:0;z-index:999;background:var(--y);color:#000;border:none;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;border-radius:0 0 8px 0">← Store</button>
+  <div class="ab">
+    <!-- LOGIN -->
+    <div id="a-login" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:var(--rad);padding:32px;width:100%;max-width:380px">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#58a6ff">Apna<span style="color:var(--y)">Mart</span></div>
+          <div style="font-size:13px;color:#8b949e;margin-top:4px">Admin Panel</div>
+        </div>
+        <div class="afg"><label class="al2">Username</label><input class="ai" id="a-user" placeholder="admin"></div>
+        <div class="afg" style="margin-bottom:20px"><label class="al2">Password</label><input class="ai" type="password" id="a-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')aLogin()"></div>
+        <button class="btn btn-g w100" onclick="aLogin()">Login</button>
+        <div style="font-size:11px;color:#8b949e;text-align:center;margin-top:10px">Default: admin / admin123</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="a-dash" style="display:none">
+      <div class="ah">
+        <div class="al">Apna<span>Mart</span> <span style="font-size:12px;font-weight:400;color:#8b949e">Admin</span></div>
+        <button class="xb xb-r xb-lg" onclick="aLogout()">Logout</button>
+      </div>
+      <nav class="an">
+        <div class="ani on" onclick="aTab('s-db',this)">📊 Dashboard</div>
+        <div class="ani" onclick="aTab('s-ord',this)">📦 Orders</div>
+        <div class="ani" onclick="aTab('s-prod',this)">🛒 Products</div>
+        <div class="ani" onclick="aTab('s-cat',this)">🏷️ Categories</div>
+        <div class="ani" onclick="aTab('s-set',this)">⚙️ Settings</div>
+      </nav>
+      <div class="ac">
+
+        <!-- DASHBOARD -->
+        <div id="s-db" class="as on">
+          <div class="sg">
+            <div class="sk2"><div class="sv svg" id="st-o">0</div><div class="sl">Orders</div></div>
+            <div class="sk2"><div class="sv svb" id="st-r">₹0</div><div class="sl">Revenue</div></div>
+            <div class="sk2"><div class="sv svy" id="st-p">0</div><div class="sl">Products</div></div>
+            <div class="sk2"><div class="sv svr" id="st-pend">0</div><div class="sl">Pending</div></div>
+          </div>
+          <div style="background:#161b22;border:1px solid #30363d;border-radius:var(--rad);padding:16px">
+            <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:#58a6ff">Recent Orders</div>
+            <div id="a-recent"></div>
+          </div>
+        </div>
+
+        <!-- ORDERS -->
+        <div id="s-ord" class="as">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+            <div style="font-size:16px;font-weight:700">All Orders</div>
+            <select class="ssel" onchange="renderAOrds(this.value)">
+              <option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="out_for_delivery">Out for Delivery</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div id="a-ords"></div>
+        </div>
+
+        <!-- PRODUCTS -->
+        <div id="s-prod" class="as">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+            <div style="font-size:16px;font-weight:700">Products</div>
+            <button class="btn btn-g btn-sm" onclick="openProd()">+ Add Product</button>
+          </div>
+          <div class="apg" id="a-prods"></div>
+        </div>
+
+        <!-- CATEGORIES -->
+        <div id="s-cat" class="as">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+            <div style="font-size:16px;font-weight:700">Categories</div>
+            <button class="btn btn-g btn-sm" onclick="openCat()">+ Add Category</button>
+          </div>
+          <div style="font-size:12px;color:#8b949e;margin-bottom:14px">Manage categories shown to customers</div>
+          <div id="a-cats"></div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div id="s-set" class="as">
+          <div class="sc"><div class="sct">🚚 Delivery</div>
+            <div class="afg"><label class="al2">Flat Fee (₹)</label><input class="ai" id="s-fee" type="number" min="0"></div>
+            <div class="afg"><label class="al2">Free Delivery Above (₹) — 0 to always charge</label><input class="ai" id="s-free" type="number" min="0"></div>
+            <button class="btn btn-g w100" onclick="saveDel()">Save</button>
+          </div>
+          <div class="sc"><div class="sct">📞 Contact</div>
+            <div class="afg"><label class="al2">Phone</label><input class="ai" id="s-ph" type="tel"></div>
+            <div class="afg"><label class="al2">Store Name</label><input class="ai" id="s-nm"></div>
+            <button class="btn btn-g w100" onclick="saveCont()">Save</button>
+          </div>
+          <div class="sc"><div class="sct">🔐 Password</div>
+            <div class="afg"><label class="al2">New Password (min 6 chars)</label><input class="ai" type="password" id="s-pw" placeholder="••••••••"></div>
+            <button class="xb xb-b xb-lg w100" onclick="changePW()">Update Password</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCT MODAL -->
+  <div class="amo" id="mod-prod">
+    <div class="amd">
+      <div class="amt" id="pmod-title">➕ Add Product</div>
+      <div class="uz" onclick="document.getElementById('pimg').click()">
+        <input type="file" id="pimg" accept="image/*" onchange="handleImg(this)">
+        <div id="img-ph">
+          <svg width="32" height="32" fill="none" stroke="#8b949e" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 8px;display:block"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M21 15l-5-5L5 21"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+          <div style="font-size:13px;color:#8b949e">Click to upload image</div>
+          <div style="font-size:11px;color:#6e7681;margin-top:3px">JPG/PNG max 2MB</div>
+        </div>
+      </div>
+      <div class="afr">
+        <div><label class="al2">Name *</label><input class="ai" id="p-n" placeholder="Tomatoes"></div>
+        <div><label class="al2">Category *</label><select class="ai" id="p-c"></select></div>
+      </div>
+      <div class="afr">
+        <div><label class="al2">Price ₹ *</label><input class="ai" id="p-pr" type="number" min="0" placeholder="49"></div>
+        <div><label class="al2">MRP ₹</label><input class="ai" id="p-m" type="number" min="0" placeholder="59"></div>
+      </div>
+      <div class="afr">
+        <div><label class="al2">Weight/Unit</label><input class="ai" id="p-w" placeholder="500g"></div>
+        <div><label class="al2">Emoji</label><input class="ai" id="p-e" placeholder="🍅"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <label class="tg"><input type="checkbox" id="p-av" checked><span class="tgs"></span></label>
+        <span style="font-size:13px;color:#e6edf3">Available for sale</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-o w100" onclick="closeProd()" style="border-color:#30363d;color:#8b949e">Cancel</button>
+        <button class="btn btn-g w100" id="psave" onclick="saveProd()">Save Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORY MODAL -->
+  <div class="amo" id="mod-cat">
+    <div class="amd" style="max-width:360px">
+      <div class="amt" id="cmod-title">🏷️ Add Category</div>
+      <div class="afg"><label class="al2">Name *</label><input class="ai" id="c-n" placeholder="e.g. Vegetables"></div>
+      <div class="afg"><label class="al2">Emoji</label><input class="ai" id="c-e" placeholder="🥦"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-o w100" onclick="closeCat()" style="border-color:#30363d;color:#8b949e">Cancel</button>
+        <button class="btn btn-g w100" onclick="saveCat()">Save Category</button>
+      </div>
+    </div>
+  </div>
+</div><!-- END ADMIN -->
+
+
+<script>
+// ══════════════════════════════
+//  STATE
+// ══════════════════════════════
+const S = {
+  products:[], orders:[], cats:[],
+  settings:{storeName:'Apna Mart',phone:'+91 98765 43210',flatFee:30,freeOver:500,adminPass:'admin123'},
+  cart:[],
+  user: JSON.parse(localStorage.getItem('am_user')||'null'),
+  addr: JSON.parse(localStorage.getItem('am_addr')||'null'),
+  curCat:'all', editProd:null, editCat:null, uploadImg:null,
+  demoOTP: null  // used for demo OTP (no Firebase)
+};
+
+// ══════════════════════════════
+//  API HELPERS
+// ══════════════════════════════
+async function api(path, method='GET', body=null){
+  const opts = { method, headers:{'Content-Type':'application/json'} };
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if(!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ══════════════════════════════
+//  BOOT
+// ══════════════════════════════
+window.addEventListener('load', async ()=>{
+  try {
+    // Load all data in parallel — fast!
+    const [products, cats, settings] = await Promise.all([
+      api('/api/products'),
+      api('/api/categories'),
+      api('/api/settings')
+    ]);
+    S.products = products;
+    S.cats     = cats;
+    Object.assign(S.settings, settings);
+
+    // Load customer orders in background (non-blocking)
+    if(S.user) api('/api/orders?phone='+encodeURIComponent(S.user.phone)).then(o=>{S.orders=o;renderOrds();});
+
+    renderCats(); renderProds();
+    applyContact();
+    applyUser();
+  } catch(e) {
+    toast('Could not load data: '+e.message,'e');
+    console.error(e);
+  }
+  document.getElementById('ls').style.display='none';
+  document.getElementById('cpage').style.display='block';
+  if(window.location.hash==='#admin') showAdmin();
+});
+
+// ══════════════════════════════
+//  TOAST
+// ══════════════════════════════
+function toast(msg,t='s'){
+  const el=document.createElement('div');
+  el.className='toast t'+t;
+  el.innerHTML=`<span>${{s:'✓',e:'✕',i:'ℹ'}[t]||'✓'}</span><span>${msg}</span>`;
+  document.getElementById('tc').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+// ══════════════════════════════
+//  NAV
+// ══════════════════════════════
+function goPage(p){
+  ['home','orders','profile'].forEach(x=>{
+    document.getElementById('p-'+x).style.display=x===p?'block':'none';
+    document.getElementById('ni-'+x).classList.toggle('on',x===p);
+  });
+  if(p==='orders') loadOrders();
+}
+function showAdmin(){
+  document.getElementById('cpage').style.display='none';
+  document.getElementById('admin-page').style.display='block';
+  window.location.hash='admin';
+  refreshStats();
+}
+function showCustomer(){
+  document.getElementById('admin-page').style.display='none';
+  document.getElementById('cpage').style.display='block';
+  window.location.hash='';
+}
+window.addEventListener('hashchange',()=>{
+  if(window.location.hash==='#admin') showAdmin(); else showCustomer();
+});
+
+// ══════════════════════════════
+//  MODALS
+// ══════════════════════════════
+function om(id){document.getElementById(id).classList.add('open');}
+function cm(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)cm(m.id);}));
+
+// ══════════════════════════════
+//  CATEGORIES
+// ══════════════════════════════
+function renderCats(){
+  const used=[...new Set(S.products.map(p=>p.cat))];
+  document.getElementById('cscroll').innerHTML=[
+    `<div class="chip ${S.curCat==='all'?'on':''}" onclick="setCat('all',this)">All</div>`,
+    ...used.map(c=>{
+      const m=S.cats.find(x=>x.name===c);
+      return `<div class="chip ${S.curCat===c?'on':''}" onclick="setCat('${c}',this)">${m?m.emoji+' ':''}${c}</div>`;
+    })
+  ].join('');
+}
+function setCat(c,el){
+  S.curCat=c;
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on'); renderProds();
+}
+
+// ══════════════════════════════
+//  PRODUCTS
+// ══════════════════════════════
+function renderProds(){
+  const q=(document.getElementById('sinp')?.value||'').toLowerCase();
+  const list=S.products.filter(p=>{
+    if(S.curCat!=='all'&&p.cat!==S.curCat) return false;
+    if(q&&!p.name.toLowerCase().includes(q)&&!p.cat.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const g=document.getElementById('pgrid');
+  if(!list.length){g.innerHTML=`<div style="grid-column:span 2;text-align:center;padding:40px;color:var(--tm)">No products found 🥲</div>`;return;}
+  g.innerHTML=list.map(p=>{
+    const qty=cQty(p.id); const disc=p.mrp?Math.round((1-p.price/p.mrp)*100):0;
+    const img=p.img?`<img src="${p.img}" class="pi" loading="lazy">`:`<div class="pip">${p.emoji||'🛒'}</div>`;
+    return `<div class="pc" ${!p.available?'style="opacity:.6"':''}>
+      ${!p.available?'<div class="oos">Out of Stock</div>':''}
+      ${disc>0?`<div class="disc">${disc}% OFF</div>`:''}${img}
+      <div class="pinfo">
+        <div class="pn">${p.name}</div><div class="pw">${p.weight||''}</div>
+        <div class="pft">
+          <div class="pp">₹${p.price}${p.mrp?` <span class="sk">₹${p.mrp}</span>`:''}</div>
+          ${p.available?(qty>0
+            ?`<div class="qc"><button class="qb" onclick="cq('${p.id}',-1)">−</button><span class="qn">${qty}</span><button class="qb" onclick="cq('${p.id}',1)">+</button></div>`
+            :`<button class="ab-btn" onclick="ac('${p.id}')">+</button>`
+          ):''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════
+//  CART
+// ══════════════════════════════
+function cQty(id){const i=S.cart.find(c=>c.id==id);return i?i.qty:0;}
+function ac(id){
+  const p=S.products.find(x=>x.id==id);if(!p)return;
+  const ex=S.cart.find(c=>c.id==id);
+  if(ex)ex.qty++;else S.cart.push({id:p.id,name:p.name,price:p.price,emoji:p.emoji,img:p.img,qty:1});
+  uCart();renderProds();toast(p.name+' added');
+}
+function cq(id,d){
+  const i=S.cart.findIndex(c=>c.id==id);if(i<0)return;
+  S.cart[i].qty+=d;if(S.cart[i].qty<=0)S.cart.splice(i,1);
+  uCart();renderProds();
+}
+function sub(){return S.cart.reduce((s,c)=>s+c.price*c.qty,0);}
+function dfee(){const s=sub();if(S.settings.freeOver>0&&s>=S.settings.freeOver)return 0;return S.settings.flatFee||30;}
+function tot(){return sub()+dfee();}
+function uCart(){
+  const n=S.cart.reduce((s,c)=>s+c.qty,0);
+  document.getElementById('cbadge').textContent=n;
+  document.getElementById('cfc').textContent=n;
+  document.getElementById('cfp').textContent='₹'+tot();
+  const nm=S.cart.map(c=>c.name).slice(0,3).join(', ');
+  document.getElementById('cft').textContent=n>0?nm.slice(0,32)+(nm.length>32?'...':''):'View Cart';
+  document.getElementById('cfloat').classList.toggle('hide',n===0);
+}
+function openCart(){
+  if(!S.cart.length){toast('Cart is empty!','i');return;}
+  const s=sub(),f=dfee();
+  const ft=S.settings.freeOver>0&&s>=S.settings.freeOver?`<span style="color:var(--g);font-size:11px">FREE</span>`:`₹${f}`;
+  document.getElementById('citems').innerHTML=S.cart.map(c=>`
+    <div class="ci">
+      <div class="cii">${c.img?`<img src="${c.img}" style="width:52px;height:52px;object-fit:cover">`:(c.emoji||'🛒')}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${c.name}</div><div style="font-size:13px;color:var(--g);font-weight:700">₹${c.price}×${c.qty}=₹${c.price*c.qty}</div></div>
+      <div class="qc"><button class="qb" onclick="cq('${c.id}',-1);openCart()">−</button><span class="qn">${c.qty}</span><button class="qb" onclick="cq('${c.id}',1);openCart()">+</button></div>
+    </div>`).join('');
+  document.getElementById('csum2').innerHTML=`<div class="csum"><div class="cr"><span>Subtotal</span><span>₹${s}</span></div><div class="cr"><span>Delivery</span><span>${ft}</span></div><div class="cr tot"><span>Total</span><span>₹${tot()}</span></div></div>`;
+  om('m-cart');
+}
+function goCheckout(){
+  if(!S.user){cm('m-cart');setTimeout(openOTP,300);return;}
+  if(!S.addr){cm('m-cart');setTimeout(openAddr,300);return;}
+  cm('m-cart');
+  const a=S.addr;
+  document.getElementById('co-addr').textContent=`${a.house}, ${a.street}${a.lm?', '+a.lm:''}, ${a.city} – ${a.pin}`;
+  document.getElementById('co-sum').innerHTML=`<div class="cr"><span>Subtotal</span><span>₹${sub()}</span></div><div class="cr"><span>Delivery</span><span>₹${dfee()}</span></div><div class="cr tot"><span>Total</span><span>₹${tot()}</span></div>`;
+  setTimeout(()=>om('m-co'),300);
+}
+async function placeOrder(){
+  const name=document.getElementById('co-n').value.trim();
+  if(!name){toast('Enter your name','e');return;}
+  const btn=document.getElementById('place-btn');
+  btn.textContent='Placing...';btn.disabled=true;
+  const a=S.addr;
+  try{
+    const order=await api('/api/orders','POST',{
+      customer:name,phone:S.user?.phone||'',
+      address:`${a.house}, ${a.street}${a.lm?', '+a.lm:''}, ${a.city} – ${a.pin}`,
+      items:[...S.cart],subtotal:sub(),deliveryFee:dfee(),total:tot(),
+      payment:document.getElementById('co-pay').value
+    });
+    S.orders.unshift(order);
+    S.cart=[];uCart();renderProds();
+    cm('m-co');toast('🎉 Order placed!');
+    setTimeout(()=>goPage('orders'),600);
+  }catch(e){toast('Failed: '+e.message,'e');}
+  btn.textContent='🎉 Place Order';btn.disabled=false;
+}
+
+// ══════════════════════════════
+//  ORDERS
+// ══════════════════════════════
+async function loadOrders(){
+  if(!S.user){renderOrds();return;}
+  try{S.orders=await api('/api/orders?phone='+encodeURIComponent(S.user.phone));}catch(e){}
+  renderOrds();
+}
+function renderOrds(){
+  const list=S.user?S.orders.filter(o=>o.phone===S.user.phone):[];
+  const el=document.getElementById('olist');
+  if(!list.length){el.innerHTML=`<div class="empty"><svg width="60" height="60" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 10h8M8 14h5"/></svg><h3>No orders yet</h3></div>`;return;}
+  el.innerHTML=list.map(o=>`
+    <div class="oc">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:var(--tm)">#${String(o.id).slice(-6).toUpperCase()}</span>
+        <span class="os s-${o.status}">${sl(o.status)}</span>
+      </div>
+      <div style="font-size:12px;color:var(--tm);margin-bottom:6px">${(o.items||[]).map(i=>i.name+'×'+i.qty).join(', ')}</div>
+      <div style="display:flex;justify-content:space-between">
+        <b style="font-size:14px">₹${o.total}</b>
+        <span style="font-size:11px;color:var(--tm)">${new Date(o.created_at).toLocaleDateString('en-IN')}</span>
+      </div>
+    </div>`).join('');
+}
+function sl(s){return{pending:'⏳ Pending',confirmed:'✓ Confirmed',out_for_delivery:'🛵 Out for Delivery',delivered:'✅ Delivered',cancelled:'✕ Cancelled'}[s]||s;}
+
+// ══════════════════════════════
+//  OTP  (demo — swap for Firebase if needed)
+// ══════════════════════════════
+function openOTP(){
+  if(S.user){toast('Verified as '+S.user.phone,'i');return;}
+  document.getElementById('os1').classList.remove('hidden');
+  document.getElementById('os2').classList.add('hidden');
+  document.querySelectorAll('.oi').forEach(i=>i.value='');
+  om('m-otp');
+}
+function sendOTP(){
+  const ph=document.getElementById('ph').value.trim();
+  if(ph.length!==10){toast('Enter 10-digit number','e');return;}
+  S.demoOTP=Math.floor(100000+Math.random()*900000).toString();
+  document.getElementById('otp-ph').textContent='+91'+ph;
+  document.getElementById('os1').classList.add('hidden');
+  document.getElementById('os2').classList.remove('hidden');
+  document.querySelectorAll('.oi')[0].focus();
+  toast('Demo OTP: '+S.demoOTP,'i');  // ← replace with Firebase for real SMS
+}
+function on(el,i){el.value=el.value.replace(/\D/g,'');if(el.value&&i<5)document.querySelectorAll('.oi')[i+1].focus();}
+function verOTP(){
+  const code=Array.from(document.querySelectorAll('.oi')).map(i=>i.value).join('');
+  if(code.length<6){toast('Enter all 6 digits','e');return;}
+  // Demo: any 6 digits work — swap this check for Firebase confirm() for real SMS
+  if(code===S.demoOTP || code.length===6){
+    const ph='+91'+document.getElementById('ph').value;
+    S.user={phone:ph,name:'User '+ph.slice(-4)};
+    localStorage.setItem('am_user',JSON.stringify(S.user));
+    applyUser();cm('m-otp');toast('✅ Verified!');loadOrders();
+  } else {
+    toast('Wrong OTP','e');
+    document.querySelectorAll('.oi').forEach(i=>i.value='');
+    document.querySelectorAll('.oi')[0].focus();
+  }
+}
+
+// ══════════════════════════════
+//  ADDRESS
+// ══════════════════════════════
+function openAddr(){
+  if(S.addr){['house','street','city','pin','lm'].forEach(f=>document.getElementById('a-'+f).value=S.addr[f]||'');}
+  om('m-addr');
+}
+function saveAddr(){
+  const house=document.getElementById('a-house').value.trim();
+  const street=document.getElementById('a-street').value.trim();
+  const city=document.getElementById('a-city').value.trim();
+  const pin=document.getElementById('a-pin').value.trim();
+  if(!house||!street||!city||pin.length<6){toast('Fill all required fields','e');return;}
+  S.addr={house,street,city,pin,lm:document.getElementById('a-lm').value.trim()};
+  localStorage.setItem('am_addr',JSON.stringify(S.addr));
+  document.getElementById('loc-t').textContent=`📍 ${house}, ${street}, ${city}`;
+  cm('m-addr');toast('Address saved!');
+}
+
+// ══════════════════════════════
+//  CONTACT FAB
+// ══════════════════════════════
+function toggleFab(){document.getElementById('fpop').classList.toggle('show');}
+function applyContact(){
+  document.getElementById('fpop-num').textContent=S.settings.phone;
+  document.getElementById('wa-link').href='https://wa.me/'+S.settings.phone.replace(/\D/g,'');
+}
+function applyUser(){
+  if(S.user){
+    document.getElementById('prf-name').textContent=S.user.name;
+    document.getElementById('prf-phone').textContent=S.user.phone;
+    document.getElementById('vbtn').textContent='✓ Verified – '+S.user.phone;
+  }
+  if(S.addr) document.getElementById('loc-t').textContent=`📍 ${S.addr.house}, ${S.addr.street}, ${S.addr.city}`;
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.fab')&&!e.target.closest('#fpop')) document.getElementById('fpop').classList.remove('show');
+});
+
+// ══════════════════════════════
+//  ADMIN LOGIN
+// ══════════════════════════════
+function aLogin(){
+  if(document.getElementById('a-user').value.trim()==='admin'&&
+     document.getElementById('a-pass').value===S.settings.adminPass){
+    document.getElementById('a-login').style.display='none';
+    document.getElementById('a-dash').style.display='block';
+    refreshStats();
+  }else toast('Wrong credentials','e');
+}
+function aLogout(){
+  document.getElementById('a-dash').style.display='none';
+  document.getElementById('a-login').style.display='flex';
+}
+function aTab(id,el){
+  document.querySelectorAll('.as').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.ani').forEach(n=>n.classList.remove('on'));
+  document.getElementById(id).classList.add('on');el.classList.add('on');
+  if(id==='s-prod') renderAProds();
+  if(id==='s-ord') renderAOrds('all');
+  if(id==='s-cat') renderACats();
+  if(id==='s-set') loadSett();
+  if(id==='s-db') refreshStats();
+}
+
+// ══════════════════════════════
+//  ADMIN STATS
+// ══════════════════════════════
+async function refreshStats(){
+  try{
+    const [orders,products]=await Promise.all([api('/api/orders'),api('/api/products')]);
+    S.orders=orders;S.products=products;
+  }catch(e){}
+  document.getElementById('st-o').textContent=S.orders.length;
+  document.getElementById('st-r').textContent='₹'+S.orders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+(+o.total||0),0);
+  document.getElementById('st-p').textContent=S.products.length;
+  document.getElementById('st-pend').textContent=S.orders.filter(o=>o.status==='pending').length;
+  const el=document.getElementById('a-recent');
+  if(!S.orders.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#8b949e;font-size:13px">No orders</div>';return;}
+  el.innerHTML=S.orders.slice(0,6).map(o=>`
+    <div class="aor">
+      <div class="aoid">#${String(o.id).slice(-6).toUpperCase()}</div>
+      <div class="aoi">${o.customer} · ${o.phone} · ₹${o.total}</div>
+      <div class="aoi">${o.address}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════
+//  ADMIN ORDERS
+// ══════════════════════════════
+async function renderAOrds(filter){
+  try{S.orders=await api('/api/orders');}catch(e){}
+  const list=filter==='all'?S.orders:S.orders.filter(o=>o.status===filter);
+  const el=document.getElementById('a-ords');
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#8b949e;font-size:13px">No orders</div>';return;}
+  el.innerHTML=list.map(o=>`
+    <div class="aor">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+        <div style="flex:1;min-width:200px">
+          <div class="aoid">#${String(o.id).slice(-6).toUpperCase()}</div>
+          <div class="aoi">${o.customer} · ${o.phone}</div>
+          <div class="aoi">${o.address}</div>
+          <div class="aoi" style="margin-top:4px">${(o.items||[]).map(i=>(i.emoji||'')+i.name+'×'+i.qty).join(' | ')}</div>
+          <div class="aoi" style="color:#e6edf3;font-weight:600;margin-top:4px">₹${o.total} · ${(o.payment||'').toUpperCase()}</div>
+        </div>
+        <select class="ssel" onchange="updOrd(${o.id},this.value)">
+          <option ${o.status==='pending'?'selected':''} value="pending">Pending</option>
+          <option ${o.status==='confirmed'?'selected':''} value="confirmed">Confirmed</option>
+          <option ${o.status==='out_for_delivery'?'selected':''} value="out_for_delivery">Out for Delivery</option>
+          <option ${o.status==='delivered'?'selected':''} value="delivered">Delivered</option>
+          <option ${o.status==='cancelled'?'selected':''} value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>`).join('');
+}
+async function updOrd(id,status){
+  try{await api('/api/orders','PUT',{id,status});toast('Order updated');}
+  catch(e){toast('Error: '+e.message,'e');}
+}
+
+// ══════════════════════════════
+//  ADMIN PRODUCTS
+// ══════════════════════════════
+async function renderAProds(){
+  try{S.products=await api('/api/products');}catch(e){}
+  const el=document.getElementById('a-prods');
+  if(!S.products.length){el.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:#8b949e;font-size:13px">No products yet</div>';return;}
+  el.innerHTML=S.products.map(p=>`
+    <div class="apc">
+      <div class="api">${p.img?`<img src="${p.img}">`:(p.emoji||'🛒')}</div>
+      <div class="ain">
+        <div style="font-size:13px;font-weight:700;color:#e6edf3">${p.name}</div>
+        <div style="font-size:11px;color:#8b949e">${p.cat}${p.weight?' · '+p.weight:''}</div>
+        <div style="font-size:14px;font-weight:700;color:#3fb950;margin-top:4px">₹${p.price}${p.mrp?` <span style="font-size:10px;color:#8b949e;text-decoration:line-through">₹${p.mrp}</span>`:''}</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:5px">
+          <div style="width:7px;height:7px;border-radius:50%;background:${p.available?'#3fb950':'#f85149'}"></div>
+          <span style="font-size:11px;color:#8b949e">${p.available?'In Stock':'Out of Stock'}</span>
+        </div>
+        <div class="aact">
+          <button class="xb xb-b" onclick="openProd(${p.id})">✏️ Edit</button>
+          <button class="xb xb-r" onclick="delProd(${p.id})">🗑</button>
+          <button class="xb ${p.available?'xb-o':'xb-g'}" onclick="togProd(${p.id},${!p.available})">${p.available?'Disable':'Enable'}</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function openProd(id=null){
+  S.editProd=id; S.uploadImg=null;
+  document.getElementById('pmod-title').textContent=id?'✏️ Edit Product':'➕ Add Product';
+  const sel=document.getElementById('p-c');
+  sel.innerHTML=S.cats.length
+    ? S.cats.map(c=>`<option value="${c.name}">${c.emoji||''} ${c.name}</option>`).join('')
+    : '<option value="">No categories yet — add one first</option>';
+  document.getElementById('img-ph').innerHTML=`
+    <svg width="32" height="32" fill="none" stroke="#8b949e" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 8px;display:block"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M21 15l-5-5L5 21"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+    <div style="font-size:13px;color:#8b949e">Click to upload image</div>
+    <div style="font-size:11px;color:#6e7681;margin-top:3px">JPG/PNG max 2MB</div>`;
+  if(id){
+    const p=S.products.find(x=>x.id==id);
+    document.getElementById('p-n').value=p.name;
+    document.getElementById('p-c').value=p.cat;
+    document.getElementById('p-pr').value=p.price;
+    document.getElementById('p-m').value=p.mrp||'';
+    document.getElementById('p-w').value=p.weight||'';
+    document.getElementById('p-e').value=p.emoji||'';
+    document.getElementById('p-av').checked=p.available;
+    if(p.img){S.uploadImg=p.img;document.getElementById('img-ph').innerHTML=`<img src="${p.img}" class="upr"><div style="font-size:11px;color:#8b949e;margin-top:4px">Click to change</div>`;}
+  } else {
+    ['p-n','p-pr','p-m','p-w','p-e'].forEach(f=>document.getElementById(f).value='');
+    document.getElementById('p-av').checked=true;
+  }
+  document.getElementById('mod-prod').classList.add('open');
+}
+function closeProd(){document.getElementById('mod-prod').classList.remove('open');}
+function handleImg(input){
+  const f=input.files[0];if(!f)return;
+  if(f.size>2097152){toast('Max 2MB','e');return;}
+  const r=new FileReader();
+  r.onload=e=>{S.uploadImg=e.target.result;document.getElementById('img-ph').innerHTML=`<img src="${e.target.result}" class="upr"><div style="font-size:11px;color:#8b949e;margin-top:4px">Click to change</div>`;};
+  r.readAsDataURL(f);
+}
+async function saveProd(){
+  const name=document.getElementById('p-n').value.trim();
+  const cat=document.getElementById('p-c').value;
+  const price=parseFloat(document.getElementById('p-pr').value);
+  if(!name){toast('Name required','e');return;}
+  if(!cat||cat==='No categories yet — add one first'){toast('Add a category first','e');return;}
+  if(!price||price<=0){toast('Enter valid price','e');return;}
+  const data={name,cat,price,mrp:parseFloat(document.getElementById('p-m').value)||null,
+    weight:document.getElementById('p-w').value.trim(),emoji:document.getElementById('p-e').value.trim()||'🛒',
+    available:document.getElementById('p-av').checked,img:S.uploadImg||null};
+  const btn=document.getElementById('psave');btn.textContent='Saving...';btn.disabled=true;
+  try{
+    if(S.editProd){ await api('/api/products','PUT',{id:S.editProd,...data}); toast('Updated!'); }
+    else { const p=await api('/api/products','POST',data); S.products.push(p); toast('Product added!'); }
+    S.products=await api('/api/products');
+    renderAProds(); renderCats(); renderProds();
+    closeProd();
+  }catch(e){toast('Error: '+e.message,'e');}
+  btn.textContent='Save Product';btn.disabled=false;
+}
+async function delProd(id){
+  if(!confirm('Delete this product?'))return;
+  try{await api('/api/products','DELETE',{id});S.products=S.products.filter(p=>p.id!=id);renderAProds();renderProds();toast('Deleted');}
+  catch(e){toast('Error','e');}
+}
+async function togProd(id,available){
+  const p=S.products.find(x=>x.id==id);if(!p)return;
+  try{await api('/api/products','PUT',{...p,id,available});S.products=await api('/api/products');renderAProds();renderProds();}
+  catch(e){toast('Error','e');}
+}
+document.getElementById('mod-prod').addEventListener('click',function(e){if(e.target===this)closeProd();});
+
+// ══════════════════════════════
+//  ADMIN CATEGORIES
+// ══════════════════════════════
+async function renderACats(){
+  try{S.cats=await api('/api/categories');}catch(e){}
+  const el=document.getElementById('a-cats');
+  if(!S.cats.length){el.innerHTML='<div style="text-align:center;padding:40px;color:#8b949e;font-size:13px">No categories yet. Click + Add Category above.</div>';return;}
+  el.innerHTML=S.cats.map(c=>{
+    const cnt=S.products.filter(p=>p.cat===c.name).length;
+    return `<div class="cr2">
+      <div class="cn">
+        <span class="ce">${c.emoji||'🏷️'}</span>
+        <span class="ct">${c.name}</span>
+        <span class="cc">${cnt} product${cnt!==1?'s':''}</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="xb xb-b" onclick="openCat(${c.id})">✏️ Edit</button>
+        <button class="xb xb-r" onclick="delCat(${c.id})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openCat(id=null){
+  S.editCat=id;
+  document.getElementById('cmod-title').textContent=id?'✏️ Edit Category':'🏷️ Add Category';
+  if(id){const c=S.cats.find(x=>x.id==id);document.getElementById('c-n').value=c?.name||'';document.getElementById('c-e').value=c?.emoji||'';}
+  else{document.getElementById('c-n').value='';document.getElementById('c-e').value='';}
+  document.getElementById('mod-cat').classList.add('open');
+}
+function closeCat(){document.getElementById('mod-cat').classList.remove('open');}
+async function saveCat(){
+  const name=document.getElementById('c-n').value.trim();
+  const emoji=document.getElementById('c-e').value.trim();
+  if(!name){toast('Name required','e');return;}
+  try{
+    if(S.editCat){
+      const old=S.cats.find(x=>x.id==S.editCat)?.name;
+      await api('/api/categories','PUT',{id:S.editCat,name,emoji,oldName:old});
+      toast('Category updated!');
+    }else{
+      if(S.cats.find(x=>x.name.toLowerCase()===name.toLowerCase())){toast('Already exists','e');return;}
+      await api('/api/categories','POST',{name,emoji});
+      toast('Category added!');
+    }
+    S.cats=await api('/api/categories');
+    renderACats(); renderCats();
+    closeCat();
+  }catch(e){toast('Error: '+e.message,'e');}
+}
+async function delCat(id){
+  const c=S.cats.find(x=>x.id==id);if(!c)return;
+  const cnt=S.products.filter(p=>p.cat===c.name).length;
+  if(!confirm(cnt>0?`"${c.name}" has ${cnt} products. Delete anyway?`:`Delete "${c.name}"?`))return;
+  try{await api('/api/categories','DELETE',{id});S.cats=S.cats.filter(x=>x.id!=id);renderACats();renderCats();toast('Deleted');}
+  catch(e){toast('Error','e');}
+}
+document.getElementById('mod-cat').addEventListener('click',function(e){if(e.target===this)closeCat();});
+
+// ══════════════════════════════
+//  ADMIN SETTINGS
+// ══════════════════════════════
+function loadSett(){
+  document.getElementById('s-fee').value=S.settings.flatFee;
+  document.getElementById('s-free').value=S.settings.freeOver;
+  document.getElementById('s-ph').value=S.settings.phone;
+  document.getElementById('s-nm').value=S.settings.storeName;
+}
+async function saveDel(){
+  S.settings.flatFee=parseFloat(document.getElementById('s-fee').value)||30;
+  S.settings.freeOver=parseFloat(document.getElementById('s-free').value)||0;
+  try{await api('/api/settings','POST',S.settings);toast('Saved!');}catch(e){toast('Error','e');}
+}
+async function saveCont(){
+  S.settings.phone=document.getElementById('s-ph').value.trim();
+  S.settings.storeName=document.getElementById('s-nm').value.trim();
+  try{await api('/api/settings','POST',S.settings);applyContact();toast('Saved!');}catch(e){toast('Error','e');}
+}
+async function changePW(){
+  const pw=document.getElementById('s-pw').value;
+  if(pw.length<6){toast('Min 6 chars','e');return;}
+  S.settings.adminPass=pw;
+  try{await api('/api/settings','POST',S.settings);document.getElementById('s-pw').value='';toast('Password changed!');}catch(e){toast('Error','e');}
+}
+</script>
+</body>
+</html>
