@@ -7,16 +7,10 @@ const headers = {
   'Access-Control-Allow-Headers': 'Content-Type'
 };
 
-// Your 2Factor.in API key
-const TWOFACTOR_KEY = 'dc41df6b-156b-11f1-bcb0-0200cd936042';
-
 export default async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
-  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers });
 
   const sql = neon();
-
-  // Create OTP sessions table if not exists
   await sql`CREATE TABLE IF NOT EXISTS otp_sessions (
     phone TEXT PRIMARY KEY,
     otp TEXT NOT NULL,
@@ -34,14 +28,12 @@ export default async (req) => {
     return new Response(JSON.stringify({ ok: false, error: 'Invalid phone number' }), { status: 400, headers });
   }
 
-  // Keep only last 10 digits
   const phoneNum = phone.replace(/\D/g, '').slice(-10);
 
-  // Generate 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+  // Fixed OTP for testing
+  const otp = '111111';
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-  // Store in Neon DB
   await sql`
     INSERT INTO otp_sessions (phone, otp, expires_at)
     VALUES (${phoneNum}, ${otp}, ${expiresAt.toISOString()})
@@ -49,32 +41,7 @@ export default async (req) => {
       SET otp = ${otp}, expires_at = ${expiresAt.toISOString()}, created_at = NOW()
   `;
 
-  // Send via 2Factor.in
-  try {
-    const url = `https://2factor.in/API/V1/${TWOFACTOR_KEY}/SMS/${phoneNum}/${otp}/OTP1`;
-    const smsRes = await fetch(url);
-    const smsData = await smsRes.json();
-
-    if (smsData.Status === 'Success') {
-      // Real SMS sent successfully
-      return new Response(JSON.stringify({ ok: true }), { headers });
-    } else {
-      // SMS failed - show OTP on screen as fallback
-      console.error('2Factor error:', JSON.stringify(smsData));
-      return new Response(JSON.stringify({
-        ok: true,
-        dev_otp: otp,
-        warning: '2Factor: ' + smsData.Details
-      }), { headers });
-    }
-  } catch (e) {
-    console.error('SMS error:', e.message);
-    return new Response(JSON.stringify({
-      ok: true,
-      dev_otp: otp,
-      warning: 'SMS error: ' + e.message
-    }), { headers });
-  }
+  return new Response(JSON.stringify({ ok: true }), { headers });
 };
 
 export const config = { path: '/api/send-otp' };
