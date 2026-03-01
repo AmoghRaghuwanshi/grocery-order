@@ -785,45 +785,30 @@ async function sendOTP(){
   if(ph.length!==10){toast('Enter valid 10-digit number','e');return;}
   const btn=document.getElementById('send-btn');
   btn.textContent='Sending...'; btn.disabled=true;
-  try{
-    // Calls your Netlify function which uses 2Factor.in API
-    const res=await api('/api/send-otp','POST',{phone:'+91'+ph});
-    if(res.ok){
-      document.getElementById('otp-ph').textContent='+91'+ph;
-      document.getElementById('os1').classList.add('hidden');
-      document.getElementById('os2').classList.remove('hidden');
-      document.querySelectorAll('.oi')[0].focus();
-      if(res.dev_otp){
-        toast('Test OTP: '+res.dev_otp+' (Add SMS API key for real SMS)','i');
-      } else {
-        toast('OTP sent to +91'+ph,'i');
-      }
-    } else {
-      toast(res.error||'Failed to send OTP','e');
-    }
-  }catch(e){
-    toast('SMS error: '+e.message,'e');
-  }
-  btn.textContent='Send OTP via SMS'; btn.disabled=false;
+  // Always show OTP screen — no network call needed while using fixed OTP
+  setTimeout(()=>{
+    document.getElementById('otp-ph').textContent='+91'+ph;
+    document.getElementById('os1').classList.add('hidden');
+    document.getElementById('os2').classList.remove('hidden');
+    document.querySelectorAll('.oi')[0].focus();
+    toast('Enter OTP: 111111','i');
+    btn.textContent='Send OTP via SMS'; btn.disabled=false;
+  }, 600);
 }
 function on(el,i){el.value=el.value.replace(/\D/g,'');if(el.value&&i<5)document.querySelectorAll('.oi')[i+1].focus();}
-async function verOTP(){
+function verOTP(){
   const code=Array.from(document.querySelectorAll('.oi')).map(i=>i.value).join('');
   if(code.length<6){toast('Enter all 6 digits','e');return;}
-  const ph='+91'+document.getElementById('ph').value;
-  try{
-    const res=await api('/api/verify-otp','POST',{phone:ph,otp:code});
-    if(res.ok){
-      S.user={phone:ph,name:'User '+ph.slice(-4)};
-      localStorage.setItem('am_user',JSON.stringify(S.user));
-      applyUser(); cm('m-otp'); toast('✅ Verified!'); loadOrders();
-    } else {
-      toast('Wrong OTP. Try again.','e');
-      document.querySelectorAll('.oi').forEach(i=>i.value='');
-      document.querySelectorAll('.oi')[0].focus();
-    }
-  }catch(e){
-    toast('Verification error','e');
+  // Fixed OTP check — no API call
+  if(code==='111111'){
+    const ph='+91'+document.getElementById('ph').value;
+    S.user={phone:ph,name:'User '+ph.slice(-4)};
+    localStorage.setItem('am_user',JSON.stringify(S.user));
+    applyUser(); cm('m-otp'); toast('✅ Verified!'); loadOrders();
+  } else {
+    toast('Wrong OTP. Use 111111','e');
+    document.querySelectorAll('.oi').forEach(i=>i.value='');
+    document.querySelectorAll('.oi')[0].focus();
   }
 }
 
