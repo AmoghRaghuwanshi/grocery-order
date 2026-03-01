@@ -8,7 +8,7 @@ const headers = {
 };
 
 // Your 2Factor.in API key
-const TWOFACTOR_KEY = dc41df6b-156b-11f1-bcb0-0200cd936042 ;
+const TWOFACTOR_KEY = 'dc41df6b-156b-11f1-bcb0-0200cd936042';
 
 export default async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
