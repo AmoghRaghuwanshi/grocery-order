@@ -1,5 +1,3 @@
-import { neon } from '@netlify/neon';
-
 const headers = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
@@ -9,38 +7,7 @@ const headers = {
 
 export default async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers });
-
-  const sql = neon();
-  await sql`CREATE TABLE IF NOT EXISTS otp_sessions (
-    phone TEXT PRIMARY KEY,
-    otp TEXT NOT NULL,
-    expires_at TIMESTAMPTZ NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-  )`;
-
-  let body;
-  try { body = await req.json(); } catch(e) {
-    return new Response(JSON.stringify({ ok: false, error: 'Invalid request' }), { status: 400, headers });
-  }
-
-  const { phone } = body;
-  if (!phone || phone.replace(/\D/g,'').length < 10) {
-    return new Response(JSON.stringify({ ok: false, error: 'Invalid phone number' }), { status: 400, headers });
-  }
-
-  const phoneNum = phone.replace(/\D/g, '').slice(-10);
-
-  // Fixed OTP for testing
-  const otp = '111111';
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-  await sql`
-    INSERT INTO otp_sessions (phone, otp, expires_at)
-    VALUES (${phoneNum}, ${otp}, ${expiresAt.toISOString()})
-    ON CONFLICT (phone) DO UPDATE
-      SET otp = ${otp}, expires_at = ${expiresAt.toISOString()}, created_at = NOW()
-  `;
-
+  // Just return ok — OTP is always 111111
   return new Response(JSON.stringify({ ok: true }), { headers });
 };
 
