@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 <style>
 :root{--g:#0c831f;--gl:#f0faf1;--gd:#0a6b1a;--y:#f8cc1b;--r:#e53935;--bg:#f8f8f8;--w:#fff;--t:#1a1a1a;--tm:#666;--b:#e8e8e8;--sh:0 4px 24px rgba(0,0,0,.10);--rad:16px;--rs:10px;--f:'Poppins',sans-serif;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -165,7 +166,7 @@ label{font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;display:b
 .toast{background:#1f2937;color:#fff;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;animation:sd .3s ease forwards;}
 .ts{border-left:4px solid var(--g);}.te{border-left:4px solid var(--r);}.ti{border-left:4px solid #3b82f6;}
 /* ADMIN TAB */
-.atab{position:fixed;top:50%;right:0;background:var(--y);color:#000;font-size:11px;font-weight:700;padding:6px 10px;border:none;cursor:pointer;border-radius:6px 0 0 6px;z-index:500;writing-mode:vertical-rl;letter-spacing:1px;}
+.atab{position:fixed;top:50%;right:0;background:var(--y);color:#000;font-size:11px;font-weight:700;padding:6px 10px;border:none;cursor:pointer;border-radius:6px 0 0 6px;z-index:9000;writing-mode:vertical-rl;letter-spacing:1px;}
 /* EMPTY */
 .empty{text-align:center;padding:50px 20px;}
 .empty h3{font-size:15px;font-weight:600;color:var(--tm);margin-top:12px;}
@@ -253,16 +254,32 @@ label{font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;display:b
 .tgs:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#8b949e;border-radius:50%;transition:.3s;}
 .tg input:checked+.tgs{background:#238636;}
 .tg input:checked+.tgs:before{transform:translateX(20px);background:#fff;}
+
+/* BARCODE SCANNER */
+.bc-wrap{position:relative;width:100%;max-width:340px;margin:0 auto;}
+#bc-viewport{width:100%;border-radius:12px;overflow:hidden;background:#000;position:relative;}
+#bc-viewport video{width:100%;display:block;}
+#bc-viewport canvas{position:absolute;top:0;left:0;width:100%;height:100%;}
+.bc-line{position:absolute;top:50%;left:10%;right:10%;height:2px;background:var(--g);box-shadow:0 0 8px var(--g);z-index:10;animation:bcpulse 1.5s ease-in-out infinite;}
+@keyframes bcpulse{0%,100%{opacity:.4;}50%{opacity:1;}}
+.bc-result{background:var(--gl);border:2px solid var(--g);border-radius:10px;padding:12px;margin-top:12px;text-align:center;display:none;}
+.bc-result .code{font-size:18px;font-weight:800;color:var(--g);letter-spacing:2px;}
+.stock-row{display:flex;align-items:center;justify-content:space-between;padding:12px;background:#f8f8f8;border-radius:10px;margin-bottom:8px;}
+.stock-name{font-size:13px;font-weight:600;}
+.stock-input{width:70px;border:1.5px solid var(--b);border-radius:8px;padding:6px 10px;font-size:14px;font-weight:700;text-align:center;outline:none;}
+.stock-input:focus{border-color:var(--g);}
+
 </style>
 </head>
 <body>
 <div id="ls"><div class="sp"></div><p>Apna Mart</p></div>
 <div id="closed-banner">
   <div class="closed-box">
-    <div style="font-size:48px;margin-bottom:12px">🔒</div>
+    <div style="font-size:48px;margin-bottom:12px" id="closed-icon" onclick="adminTap()">🔒</div>
     <h2 id="closed-title">We're Closed</h2>
     <p id="closed-msg">We are currently closed. Please check back during our working hours.</p>
     <div style="margin-top:16px;font-size:13px;color:var(--tm)" id="closed-hours"></div>
+    <div id="admin-tap-hint" style="margin-top:12px;font-size:11px;color:#ccc;opacity:0">Tap icon 5x for admin</div>
   </div>
 </div>
 <div class="tc" id="tc"></div>
@@ -508,6 +525,7 @@ label{font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;display:b
         <div class="ani" onclick="aTab('s-ord',this)">📦 Orders</div>
         <div class="ani" onclick="aTab('s-prod',this)">🛒 Products</div>
         <div class="ani" onclick="aTab('s-cat',this)">🏷️ Categories</div>
+        <div class="ani" onclick="aTab('s-stk',this)">📦 Stock</div>
         <div class="ani" onclick="aTab('s-set',this)">⚙️ Settings</div>
       </nav>
       <div class="ac">
@@ -582,6 +600,55 @@ label{font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;display:b
           <div id="a-cats"></div>
         </div>
 
+
+        <!-- STOCK UPDATE -->
+        <div id="s-stk" class="as">
+          <div style="font-size:16px;font-weight:700;margin-bottom:6px">📦 Update Stock</div>
+          <div style="font-size:12px;color:#8b949e;margin-bottom:14px">Scan a product barcode or search by name to update stock availability</div>
+
+          <!-- Barcode Scanner Box -->
+          <div class="sc" style="margin-bottom:16px">
+            <div class="sct">📷 Scan Barcode</div>
+            <div class="bc-wrap">
+              <div id="bc-viewport" style="height:200px;display:none">
+                <div class="bc-line"></div>
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:10px">
+                <button class="btn btn-g btn-sm" id="bc-start-btn" onclick="startStockScanner()">📷 Open Camera</button>
+                <button class="btn btn-sm" id="bc-stop-btn" onclick="stopStockScanner()" style="display:none;border:1.5px solid #30363d;color:#8b949e;background:transparent">Stop</button>
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:12px">
+                <input class="ai" id="stk-barcode" placeholder="Or type barcode / product name..." oninput="searchByBarcode(this.value)" style="flex:1">
+                <button onclick="searchByBarcode(document.getElementById('stk-barcode').value)" style="background:#388bfd;color:#fff;border:none;border-radius:8px;padding:0 14px;cursor:pointer;font-weight:700">Find</button>
+              </div>
+              <div id="stk-found" style="display:none;background:#0d1117;border:1px solid #3fb950;border-radius:10px;padding:14px;margin-bottom:12px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div id="stk-found-img" style="width:52px;height:52px;border-radius:8px;background:#161b22;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0"></div>
+                  <div style="flex:1">
+                    <div id="stk-found-name" style="font-size:14px;font-weight:700;color:#e6edf3"></div>
+                    <div id="stk-found-cat" style="font-size:12px;color:#8b949e"></div>
+                    <div id="stk-found-bc" style="font-size:11px;color:#3fb950;margin-top:2px"></div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+                  <label class="tg"><input type="checkbox" id="stk-avail" onchange="quickStockUpdate()"><span class="tgs"></span></label>
+                  <span style="font-size:13px;color:#e6edf3" id="stk-avail-label">Available for sale</span>
+                </div>
+              </div>
+              <div id="stk-notfound" style="display:none;background:#0d1117;border:1px solid #f85149;border-radius:10px;padding:12px;text-align:center;color:#f85149;font-size:13px;font-weight:600">Product not found for this barcode</div>
+            </div>
+          </div>
+
+          <!-- All products stock list -->
+          <div class="sc">
+            <div class="sct">📋 All Products Stock</div>
+            <div style="margin-bottom:10px">
+              <input class="ai" id="stk-search" placeholder="Search product..." oninput="renderStockList()">
+            </div>
+            <div id="stk-list"></div>
+          </div>
+        </div>
+
         <!-- SETTINGS -->
         <div id="s-set" class="as">
           <div class="sc"><div class="sct">🚚 Delivery</div>
@@ -647,6 +714,13 @@ label{font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;display:b
       <div class="afr">
         <div><label class="al2">Weight/Unit</label><input class="ai" id="p-w" placeholder="500g"></div>
         <div><label class="al2">Emoji</label><input class="ai" id="p-e" placeholder="🍅"></div>
+      </div>
+      <div class="afg">
+        <label class="al2">Barcode / SKU</label>
+        <div style="display:flex;gap:8px">
+          <input class="ai" id="p-barcode" placeholder="Scan or type barcode..." style="flex:1">
+          <button type="button" onclick="openBarcodeScanner('p-barcode')" style="background:#388bfd;color:#fff;border:none;border-radius:8px;padding:0 12px;cursor:pointer;font-size:18px;flex-shrink:0" title="Scan barcode">📷</button>
+        </div>
       </div>
       <div class="afg"><label class="al2">Description</label><textarea class="ai" id="p-desc" rows="2" placeholder="Fresh from farm, hand-picked daily..." style="resize:none"></textarea></div>
       <div class="afr">
@@ -743,6 +817,18 @@ window.addEventListener('load',async()=>{
   if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
 });
 
+let adminTapCount=0,adminTapTimer=null;
+function adminTap(){
+  adminTapCount++;
+  document.getElementById('admin-tap-hint').style.opacity='1';
+  if(adminTapTimer) clearTimeout(adminTapTimer);
+  adminTapTimer=setTimeout(()=>{adminTapCount=0;document.getElementById('admin-tap-hint').style.opacity='0';},3000);
+  if(adminTapCount>=5){
+    adminTapCount=0;
+    document.getElementById('closed-banner').style.display='none';
+    showAdmin();
+  }
+}
 function checkStoreTiming(){
   const s=S.settings;
   if(s.holidayMode){
@@ -1241,6 +1327,7 @@ function aTab(id,el){
   if(id==='s-ord')renderAOrds('all');
   if(id==='s-cat')renderACats();
   if(id==='s-set')loadSett();
+  if(id==='s-stk'){renderStockList();}
   if(id==='s-db')refreshStats();
   if(id==='s-an')loadAnalyticsOrders();
 }
@@ -1356,6 +1443,7 @@ function openProd(id=null){
     document.getElementById('p-prot').value=p.protein||'';
     document.getElementById('p-carb').value=p.carbs||'';
     document.getElementById('p-fat').value=p.fat||'';
+    document.getElementById('p-barcode').value=p.barcode||'';
     document.getElementById('p-av').checked=p.available;
     if(p.img){S.uploadImg=p.img;document.getElementById('img-ph').innerHTML=`<img src="${p.img}" class="upr"><div style="font-size:11px;color:#8b949e;margin-top:4px">Click to change</div>`;}
   }
@@ -1385,6 +1473,7 @@ async function saveProd(){
     protein:document.getElementById('p-prot').value.trim(),
     carbs:document.getElementById('p-carb').value.trim(),
     fat:document.getElementById('p-fat').value.trim(),
+    barcode:document.getElementById('p-barcode').value.trim()||null,
     available:document.getElementById('p-av').checked,img:S.uploadImg||null};
   const btn=document.getElementById('psave');btn.textContent='Saving...';btn.disabled=true;
   try{
@@ -1588,6 +1677,190 @@ function renderAnalytics(){
   if(statusChart)statusChart.destroy();
   statusChart=new Chart(document.getElementById('status-chart'),{type:'bar',data:{labels:['Pending','Confirmed','Out for Delivery','Delivered','Cancelled'],datasets:[{data:Object.values(sc),backgroundColor:['#d29922','#58a6ff','#bc8cff','#3fb950','#f85149'],borderRadius:6}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b949e',font:{size:10}},grid:{color:'#21262d'},beginAtZero:true},y:{ticks:{color:'#8b949e',font:{size:10}},grid:{display:false}}}}});
 }
+
+// ══════════════════════════════
+//  BARCODE SCANNER (QuaggaJS)
+// ══════════════════════════════
+let barcodeTarget = null, quaggaRunning = false, stockQuaggaRunning = false;
+
+function openBarcodeScanner(targetId){
+  barcodeTarget = targetId;
+  // Create temp modal for scanning
+  let existing = document.getElementById('bc-modal');
+  if(existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'bc-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML=`
+    <div style="width:100%;max-width:360px;background:#161b22;border-radius:16px;padding:20px;border:1px solid #30363d">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:700;color:#58a6ff">📷 Scan Barcode</div>
+        <button onclick="closeBarcodeModal()" style="background:#da3633;color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-weight:700">✕</button>
+      </div>
+      <div id="bc-scan-area" style="width:100%;height:220px;background:#000;border-radius:10px;overflow:hidden;position:relative">
+        <div style="position:absolute;top:50%;left:10%;right:10%;height:2px;background:#0c831f;box-shadow:0 0 8px #0c831f;z-index:10;animation:bcpulse 1.5s ease-in-out infinite"></div>
+      </div>
+      <div id="bc-scan-result" style="margin-top:12px;text-align:center;font-size:13px;color:#8b949e">Point camera at barcode</div>
+      <div style="margin-top:10px">
+        <input id="bc-manual" class="ai" placeholder="Or type barcode manually..." onkeydown="if(event.key==='Enter')useBarcodeManual()">
+        <button onclick="useBarcodeManual()" style="background:#238636;color:#fff;border:none;border-radius:8px;padding:10px;width:100%;margin-top:8px;font-weight:700;cursor:pointer;font-family:var(--f)">Use This Barcode</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  setTimeout(()=>startQuagga('bc-scan-area'), 300);
+}
+
+function startQuagga(containerId){
+  if(!window.Quagga){
+    document.getElementById('bc-scan-result').textContent='Scanner not loaded. Type barcode manually.';return;
+  }
+  Quagga.init({
+    inputStream:{type:'LiveStream',target:document.getElementById(containerId),constraints:{facingMode:'environment',width:640,height:480}},
+    decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader']},
+    locate:true
+  }, err=>{
+    if(err){document.getElementById('bc-scan-result').textContent='Camera error: '+err.message;return;}
+    Quagga.start();quaggaRunning=true;
+    document.getElementById('bc-scan-result').textContent='📷 Scanning...';
+  });
+  Quagga.onDetected(data=>{
+    const code=data.codeResult.code;
+    Quagga.stop();quaggaRunning=false;
+    const resultEl=document.getElementById('bc-scan-result');
+    if(resultEl) resultEl.innerHTML=`✅ <b style="color:#3fb950">${code}</b>`;
+    setTimeout(()=>applyBarcode(code),600);
+  });
+}
+
+function applyBarcode(code){
+  if(barcodeTarget){
+    const el=document.getElementById(barcodeTarget);
+    if(el){el.value=code;el.dispatchEvent(new Event('input'));}
+  }
+  closeBarcodeModal();
+}
+
+function useBarcodeManual(){
+  const code=document.getElementById('bc-manual')?.value.trim();
+  if(!code){toast('Enter a barcode','e');return;}
+  applyBarcode(code);
+}
+
+function closeBarcodeModal(){
+  if(quaggaRunning){try{Quagga.stop();}catch(e){}quaggaRunning=false;}
+  const modal=document.getElementById('bc-modal');
+  if(modal) modal.remove();
+}
+
+// ══════════════════════════════
+//  STOCK UPDATE WITH SCANNER
+// ══════════════════════════════
+let foundStockProduct = null;
+
+function startStockScanner(){
+  const vp=document.getElementById('bc-viewport');
+  vp.style.display='block';
+  document.getElementById('bc-start-btn').style.display='none';
+  document.getElementById('bc-stop-btn').style.display='inline-flex';
+  if(!window.Quagga){toast('Scanner not available','e');return;}
+  Quagga.init({
+    inputStream:{type:'LiveStream',target:vp,constraints:{facingMode:'environment',width:640,height:480}},
+    decoder:{readers:['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader']},
+    locate:true
+  },err=>{
+    if(err){toast('Camera error: '+err.message,'e');return;}
+    Quagga.start();stockQuaggaRunning=true;
+  });
+  Quagga.onDetected(data=>{
+    const code=data.codeResult.code;
+    stopStockScanner();
+    document.getElementById('stk-barcode').value=code;
+    searchByBarcode(code);
+    toast('Barcode scanned: '+code,'i');
+  });
+}
+
+function stopStockScanner(){
+  if(stockQuaggaRunning){try{Quagga.stop();}catch(e){}stockQuaggaRunning=false;}
+  document.getElementById('bc-viewport').style.display='none';
+  document.getElementById('bc-start-btn').style.display='inline-flex';
+  document.getElementById('bc-stop-btn').style.display='none';
+}
+
+function searchByBarcode(val){
+  const v=(val||'').trim().toLowerCase();
+  if(!v){document.getElementById('stk-found').style.display='none';document.getElementById('stk-notfound').style.display='none';return;}
+  // Search by barcode first, then by name
+  let p=S.products.find(x=>x.barcode&&x.barcode.toLowerCase()===v);
+  if(!p) p=S.products.find(x=>x.name.toLowerCase().includes(v));
+  if(p){
+    foundStockProduct=p;
+    document.getElementById('stk-found').style.display='block';
+    document.getElementById('stk-notfound').style.display='none';
+    const imgEl=document.getElementById('stk-found-img');
+    imgEl.innerHTML=p.img?`<img src="${p.img}" style="width:52px;height:52px;border-radius:8px;object-fit:cover">`:(p.emoji||'🛒');
+    document.getElementById('stk-found-name').textContent=p.name;
+    document.getElementById('stk-found-cat').textContent=p.cat+(p.weight?' · '+p.weight:'');
+    document.getElementById('stk-found-bc').textContent=p.barcode?'Barcode: '+p.barcode:'No barcode set';
+    const avail=document.getElementById('stk-avail');
+    avail.checked=p.available;
+    document.getElementById('stk-avail-label').textContent=p.available?'In Stock':'Out of Stock';
+  } else {
+    foundStockProduct=null;
+    if(v.length>2){
+      document.getElementById('stk-found').style.display='none';
+      document.getElementById('stk-notfound').style.display='block';
+    }
+  }
+}
+
+async function quickStockUpdate(){
+  if(!foundStockProduct)return;
+  const available=document.getElementById('stk-avail').checked;
+  document.getElementById('stk-avail-label').textContent=available?'In Stock':'Out of Stock';
+  try{
+    await api('/api/products','PUT',{...foundStockProduct,available});
+    foundStockProduct.available=available;
+    const idx=S.products.findIndex(p=>p.id==foundStockProduct.id);
+    if(idx>=0) S.products[idx].available=available;
+    toast(foundStockProduct.name+': '+(available?'✅ In Stock':'❌ Out of Stock'));
+    renderStockList();renderProds();
+  }catch(e){toast('Update failed','e');}
+}
+
+function renderStockList(){
+  const q=(document.getElementById('stk-search')?.value||'').toLowerCase();
+  const list=S.products.filter(p=>!q||p.name.toLowerCase().includes(q)||p.cat.toLowerCase().includes(q));
+  const el=document.getElementById('stk-list');
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:20px;color:#8b949e;font-size:13px">No products</div>';return;}
+  el.innerHTML=list.map(p=>`
+    <div class="stock-row">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+        <div style="width:36px;height:36px;border-radius:8px;background:#0d1117;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden">
+          ${p.img?`<img src="${p.img}" style="width:36px;height:36px;object-fit:cover;border-radius:8px">`:(p.emoji||'🛒')}
+        </div>
+        <div style="min-width:0">
+          <div class="stock-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e6edf3">${p.name}</div>
+          <div style="font-size:11px;color:#8b949e">${p.cat} ${p.barcode?'· 📦 '+p.barcode:''}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <span style="font-size:11px;font-weight:600;color:${p.available?'#3fb950':'#f85149'}">${p.available?'In Stock':'Out'}</span>
+        <label class="tg" style="flex-shrink:0"><input type="checkbox" ${p.available?'checked':''} onchange="toggleStock(${p.id},this.checked)"><span class="tgs"></span></label>
+      </div>
+    </div>`).join('');
+}
+
+async function toggleStock(id,available){
+  const p=S.products.find(x=>x.id==id);if(!p)return;
+  try{
+    await api('/api/products','PUT',{...p,available});
+    p.available=available;
+    toast(p.name+': '+(available?'✅ In Stock':'❌ Out of Stock'));
+    renderStockList();renderProds();
+  }catch(e){toast('Update failed','e');}
+}
+
 </script>
 </body>
 </html>
