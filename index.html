@@ -33,7 +33,7 @@ label{font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;display:b
 #ls .sp{width:44px;height:44px;border:4px solid #e8e8e8;border-top-color:var(--g);border-radius:50%;animation:spin .7s linear infinite;}
 #ls p{font-size:14px;font-weight:600;color:var(--g);}
 /* CLOSED BANNER */
-#closed-banner{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:8000;align-items:center;justify-content:center;padding:20px;}
+#closed-banner{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:190;align-items:center;justify-content:center;padding:20px;}
 .closed-box{background:#fff;border-radius:var(--rad);padding:32px;max-width:360px;text-align:center;}
 .closed-box h2{font-size:22px;font-weight:800;color:var(--r);margin-bottom:8px;}
 .closed-box p{font-size:14px;color:var(--tm);line-height:1.6;}
@@ -492,7 +492,7 @@ label{font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;display:b
 </div><!-- END CUSTOMER -->
 
 <!-- ══════ ADMIN ══════ -->
-<div id="admin-page">
+<div id="admin-page" style="position:relative;z-index:9100">
   <button onclick="showCustomer()" style="position:fixed;top:0;left:0;z-index:999;background:var(--y);color:#000;border:none;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;border-radius:0 0 8px 0">← Store</button>
   <div class="ab">
     <div id="a-login" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
@@ -604,7 +604,14 @@ label{font-size:13px;font-weight:600;color:var(--tm);margin-bottom:4px;display:b
         <!-- STOCK UPDATE -->
         <div id="s-stk" class="as">
           <div style="font-size:16px;font-weight:700;margin-bottom:6px">📦 Update Stock</div>
-          <div style="font-size:12px;color:#8b949e;margin-bottom:14px">Scan a product barcode or search by name to update stock availability</div>
+          <div style="font-size:12px;color:#8b949e;margin-bottom:10px">Scan a product barcode or search by name to update stock availability</div>
+          <div style="background:#0d2818;border:1px solid #3fb950;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+            <div style="font-size:20px">🔌</div>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#3fb950">USB / Bluetooth Scanner Ready</div>
+              <div style="font-size:11px;color:#8b949e;margin-top:1px">Keep this tab open & scan any product — it will auto-search instantly. No click needed.</div>
+            </div>
+          </div>
 
           <!-- Barcode Scanner Box -->
           <div class="sc" style="margin-bottom:16px">
@@ -1859,6 +1866,73 @@ async function toggleStock(id,available){
     toast(p.name+': '+(available?'✅ In Stock':'❌ Out of Stock'));
     renderStockList();renderProds();
   }catch(e){toast('Update failed','e');}
+}
+
+
+// ══════════════════════════════
+//  USB/BLUETOOTH BARCODE SCANNER
+//  (acts as keyboard - types fast + Enter)
+// ══════════════════════════════
+let hwBarcodeBuffer = '', hwBarcodeTimer = null;
+document.addEventListener('keypress', function(e){
+  // Only capture when no input is focused (scanner fires globally)
+  const tag = document.activeElement.tagName.toLowerCase();
+  const isInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+
+  if(!isInput){
+    // Not in an input — capture scanner input globally
+    if(e.key === 'Enter'){
+      if(hwBarcodeBuffer.length >= 3){
+        handleHWBarcode(hwBarcodeBuffer);
+      }
+      hwBarcodeBuffer = '';
+    } else {
+      hwBarcodeBuffer += e.key;
+      if(hwBarcodeTimer) clearTimeout(hwBarcodeTimer);
+      hwBarcodeTimer = setTimeout(()=>{ hwBarcodeBuffer=''; }, 100);
+    }
+  } else {
+    // In an input — if it's a barcode field, listen for Enter to trigger search
+    if(e.key === 'Enter'){
+      const id = document.activeElement.id;
+      if(id === 'stk-barcode') searchByBarcode(document.getElementById('stk-barcode').value);
+      if(id === 'p-barcode') toast('Barcode set: '+document.getElementById('p-barcode').value,'i');
+      if(id === 'bc-manual') useBarcodeManual();
+    }
+  }
+});
+
+function handleHWBarcode(code){
+  code = code.trim();
+  if(!code) return;
+
+  // If stock tab is open in admin → auto search
+  const stockTab = document.getElementById('s-stk');
+  if(stockTab && stockTab.classList.contains('on')){
+    document.getElementById('stk-barcode').value = code;
+    searchByBarcode(code);
+    toast('📦 Scanner: '+code,'i');
+    return;
+  }
+
+  // If product modal is open → fill barcode field
+  const prodModal = document.getElementById('mod-prod');
+  if(prodModal && prodModal.classList.contains('open')){
+    document.getElementById('p-barcode').value = code;
+    toast('Barcode set: '+code,'i');
+    return;
+  }
+
+  // If barcode modal open → fill it
+  const bcModal = document.getElementById('bc-modal');
+  if(bcModal){
+    const inp = document.getElementById('bc-manual');
+    if(inp){ inp.value = code; applyBarcode(code); }
+    return;
+  }
+
+  // Default: search stock
+  toast('Scanned: '+code+' — open Stock tab to update','i');
 }
 
 </script>
